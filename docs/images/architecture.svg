@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 380" width="980" height="380" role="img" aria-labelledby="title desc" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif">
+  <title id="title">How WP2Vercel separates editing from public browsing</title>
+  <desc id="desc">WordPress stays in a private zone. WP2Vercel exports static files and pushes them out to your Git repository or Vercel project. Visitors and bots reach only the static files on Vercel. Nothing connects from the public side back to WordPress.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#1f2937"/>
+    </marker>
+    <marker id="arrow-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#b91c1c"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="980" height="380" rx="14" fill="#ffffff"/>
+
+  <rect x="24" y="24" width="292" height="252" rx="12" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="6 5"/>
+  <text x="44" y="54" font-size="13" font-weight="700" fill="#475569" letter-spacing="1">PRIVATE ZONE</text>
+  <rect x="48" y="74" width="244" height="92" rx="10" fill="#ffffff" stroke="#1f2937" stroke-width="1.5"/>
+  <text x="170" y="108" font-size="18" font-weight="700" fill="#111827" text-anchor="middle">WordPress</text>
+  <text x="170" y="132" font-size="13" fill="#374151" text-anchor="middle">PHP, database, wp-admin, plugins</text>
+  <text x="170" y="150" font-size="13" fill="#374151" text-anchor="middle">behind your access gateway</text>
+  <rect x="48" y="184" width="244" height="68" rx="10" fill="#111827"/>
+  <text x="170" y="213" font-size="16" font-weight="700" fill="#ffffff" text-anchor="middle">WP2Vercel plugin</text>
+  <text x="170" y="234" font-size="13" fill="#d1d5db" text-anchor="middle">export, rewrite, scan, push</text>
+
+  <rect x="372" y="74" width="236" height="178" rx="12" fill="#ffffff" stroke="#1f2937" stroke-width="1.5"/>
+  <text x="490" y="106" font-size="13" font-weight="700" fill="#475569" text-anchor="middle" letter-spacing="1">YOUR ACCOUNTS</text>
+  <rect x="392" y="122" width="196" height="48" rx="8" fill="#f8fafc" stroke="#94a3b8"/>
+  <text x="490" y="151" font-size="15" font-weight="600" fill="#111827" text-anchor="middle">GitHub repository</text>
+  <rect x="392" y="184" width="196" height="48" rx="8" fill="#f8fafc" stroke="#94a3b8"/>
+  <text x="490" y="213" font-size="15" font-weight="600" fill="#111827" text-anchor="middle">Vercel project</text>
+
+  <rect x="664" y="24" width="292" height="252" rx="12" fill="#ecfdf5" stroke="#34d399" stroke-width="1.5"/>
+  <text x="684" y="54" font-size="13" font-weight="700" fill="#047857" letter-spacing="1">PUBLIC</text>
+  <rect x="688" y="74" width="244" height="92" rx="10" fill="#ffffff" stroke="#1f2937" stroke-width="1.5"/>
+  <text x="810" y="108" font-size="18" font-weight="700" fill="#111827" text-anchor="middle">Static site on Vercel</text>
+  <text x="810" y="132" font-size="13" fill="#374151" text-anchor="middle">HTML, CSS, JS, images, vercel.json</text>
+  <text x="810" y="150" font-size="13" fill="#374151" text-anchor="middle">no PHP, no database</text>
+  <rect x="688" y="184" width="244" height="68" rx="10" fill="#ffffff" stroke="#94a3b8"/>
+  <text x="810" y="213" font-size="15" font-weight="600" fill="#111827" text-anchor="middle">Visitors, search engines,</text>
+  <text x="810" y="233" font-size="15" font-weight="600" fill="#111827" text-anchor="middle">scanners and AI agents</text>
+
+  <path d="M292 218 H366" fill="none" stroke="#1f2937" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="344" y="238" font-size="12" fill="#374151" text-anchor="middle">push</text>
+  <path d="M608 146 H682" fill="none" stroke="#1f2937" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="636" y="166" font-size="12" fill="#374151" text-anchor="middle">deploy</text>
+  <path d="M810 184 V172" fill="none" stroke="#1f2937" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <path d="M688 318 H298" fill="none" stroke="#b91c1c" stroke-width="2" stroke-dasharray="7 6" marker-end="url(#arrow-muted)"/>
+  <circle cx="490" cy="318" r="15" fill="#ffffff" stroke="#b91c1c" stroke-width="2"/>
+  <path d="M482 310 L498 326 M498 310 L482 326" stroke="#b91c1c" stroke-width="2.5" stroke-linecap="round"/>
+  <text x="490" y="356" font-size="13" fill="#7f1d1d" text-anchor="middle">Nothing on the public side connects back to WordPress. The plugin only makes outbound requests.</text>
+</svg>

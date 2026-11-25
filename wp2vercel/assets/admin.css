@@ -1,0 +1,116 @@
+.wp2vercel .nav-tab-wrapper {
+  margin-bottom: 20px;
+}
+
+.wp2v-actions {
+  display: flex;
+  gap: 12px;
+  margin: 8px 0 20px;
+}
+
+.wp2v-card {
+  background: #fff;
+  border: 1px solid #c3c4c7;
+  border-radius: 4px;
+  padding: 4px 20px 20px;
+  max-width: 1100px;
+}
+
+.wp2v-card h2 {
+  text-transform: capitalize;
+}
+
+.wp2v-muted {
+  color: #646970;
+}
+
+.wp2v-ok {
+  color: #00713a;
+  font-weight: 600;
+}
+
+.wp2v-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+}
+
+.wp2v-steps li {
+  border: 1px solid #c3c4c7;
+  border-radius: 999px;
+  color: #646970;
+  margin: 0;
+  padding: 4px 12px;
+}
+
+.wp2v-steps li.is-done {
+  background: #edfaef;
+  border-color: #68de7c;
+  color: #00713a;
+}
+
+.wp2v-steps li.is-current {
+  background: #2271b1;
+  border-color: #2271b1;
+  color: #fff;
+}
+
+.wp2v-facts {
+  display: grid;
+  gap: 6px 16px;
+  grid-template-columns: max-content 1fr;
+  margin: 0 0 16px;
+}
+
+.wp2v-facts dt {
+  color: #646970;
+}
+
+.wp2v-facts dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.wp2v-findings h3 {
+  color: #b32d2e;
+}
+
+.wp2v-findings code,
+.wp2v-failed code {
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.wp2v-failed {
+  margin: 16px 0;
+}
+
+.wp2v-failed summary {
+  cursor: pointer;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.wp2v-log {
+  background: #1d2327;
+  border-radius: 4px;
+  color: #dcdcde;
+  font-size: 12px;
+  line-height: 1.6;
+  margin: 16px 0 0;
+  max-height: 320px;
+  overflow: auto;
+  padding: 12px 14px;
+  white-space: pre-wrap;
+}
+
+.wp2v-log .is-warning {
+  color: #f0c33c;
+}
+
+.wp2v-log .is-error {
+  color: #ff8085;
+}

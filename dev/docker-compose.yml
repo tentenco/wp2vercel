@@ -1,0 +1,55 @@
+name: wp2vercel-dev
+
+services:
+  db:
+    image: mariadb:11
+    environment:
+      MARIADB_DATABASE: wordpress
+      MARIADB_USER: wordpress
+      MARIADB_PASSWORD: wordpress
+      MARIADB_ROOT_PASSWORD: root
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 3s
+      timeout: 5s
+      retries: 30
+    volumes:
+      - db:/var/lib/mysql
+
+  wordpress:
+    image: wordpress:php8.3-apache
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:8089:80"
+    environment: &wordpress-environment
+      WORDPRESS_DB_HOST: db
+      WORDPRESS_DB_USER: wordpress
+      WORDPRESS_DB_PASSWORD: wordpress
+      WORDPRESS_DB_NAME: wordpress
+      WORDPRESS_DEBUG: "1"
+      WORDPRESS_CONFIG_EXTRA: |
+        define('WP_DEBUG_LOG', true);
+        define('WP_DEBUG_DISPLAY', false);
+    volumes:
+      - wordpress:/var/www/html
+      - ../wp2vercel:/var/www/html/wp-content/plugins/wp2vercel
+
+  cli:
+    image: wordpress:cli-php8.3
+    depends_on:
+      - wordpress
+    user: "33:33"
+    environment: *wordpress-environment
+    volumes:
+      - wordpress:/var/www/html
+      - ../wp2vercel:/var/www/html/wp-content/plugins/wp2vercel
+      - ./fixtures:/fixtures:ro
+    entrypoint: ["wp"]
+    command: ["--info"]
+    profiles: ["tools"]
+
+volumes:
+  db:
+  wordpress:

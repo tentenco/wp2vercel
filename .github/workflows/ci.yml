@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: PHP ${{ matrix.php }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - php: "8.1"
+            phpunit: "10"
+          - php: "8.2"
+            phpunit: "11"
+          - php: "8.3"
+            phpunit: "12"
+          - php: "8.4"
+            phpunit: "12"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: sodium, mbstring
+          tools: phpunit:${{ matrix.phpunit }}
+          coverage: none
+
+      - name: Lint PHP
+        run: find wp2vercel -name '*.php' -print0 | xargs -0 -n1 php -l > /dev/null
+
+      - name: Check JavaScript syntax
+        run: node --check wp2vercel/assets/admin.js
+
+      - name: Fetch WordPress for the HTML API
+        run: curl -fsSL https://wordpress.org/latest.tar.gz | tar -xz -C "$RUNNER_TEMP"
+
+      - name: Unit tests
+        working-directory: wp2vercel
+        env:
+          WP_CORE_DIR: ${{ runner.temp }}/wordpress
+        run: phpunit
+
+  package:
+    name: Build zip
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: bin/build-zip.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wp2vercel
+          path: dist/wp2vercel.zip
+          if-no-files-found: error
