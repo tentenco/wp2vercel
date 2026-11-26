@@ -7,6 +7,7 @@ namespace WP2Vercel\Scan;
 use WP2Vercel\Url\ContentKind;
 use WP2Vercel\Url\Origin;
 use WP2Vercel\Url\OriginPattern;
+use WP2Vercel\Utf8;
 
 final class LeakScanner
 {
@@ -111,6 +112,6 @@ final class LeakScanner
     {
         $start = max(0, $offset - 40);
         $excerpt = substr($content, $start, $length + 80);
-        return trim(preg_replace('~\s+~', ' ', mb_scrub($excerpt, 'UTF-8')) ?? '');
+        return trim(preg_replace('~\s+~', ' ', Utf8::scrub($excerpt)) ?? '');
     }
 }

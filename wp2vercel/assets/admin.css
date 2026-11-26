@@ -114,3 +114,35 @@
 .wp2v-log .is-error {
   color: #ff8085;
 }
+
+.wp2v-ready {
+  margin-bottom: 20px;
+}
+
+.wp2v-ready h2 {
+  text-transform: none;
+}
+
+.wp2v-ready-list {
+  margin: 0 0 12px;
+}
+
+.wp2v-ready-list li {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  margin-bottom: 8px;
+  max-width: 80ch;
+}
+
+.wp2v-ready-ok .dashicons {
+  color: #00713a;
+}
+
+.wp2v-ready-todo .dashicons {
+  color: #b32d2e;
+}
+
+.wp2v-ready-note .dashicons {
+  color: #646970;
+}

@@ -81,6 +81,25 @@ final class Database
         update_option(self::VERSION_OPTION, self::VERSION, false);
     }
 
+    public static function tablesOfSite(int $siteId): array
+    {
+        global $wpdb;
+        $prefix = $wpdb->get_blog_prefix($siteId);
+        return [$prefix . 'wp2vercel_builds', $prefix . 'wp2vercel_urls', $prefix . 'wp2vercel_logs'];
+    }
+
+    public static function dropLeftoversOfDeletedSites(): void
+    {
+        global $wpdb;
+        $pattern = '~^' . preg_quote($wpdb->base_prefix, '~') . '\\d+_wp2vercel_(?:builds|urls|logs)$~';
+        $like = $wpdb->esc_like($wpdb->base_prefix) . '%wp2vercel%';
+        foreach ((array) $wpdb->get_col($wpdb->prepare('SHOW TABLES LIKE %s', $like)) as $table) {
+            if (preg_match($pattern, (string) $table) === 1) {
+                $wpdb->query("DROP TABLE IF EXISTS `$table`");
+            }
+        }
+    }
+
     public static function drop(): void
     {
         global $wpdb;

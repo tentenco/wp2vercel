@@ -45,9 +45,22 @@ final class VercelDeployer implements Deployer
             return sprintf('Token accepted. Project "%s" does not exist yet and will be created on the first publish.', $this->project);
         }
         if (!$response->ok()) {
-            throw new DeployFailed('Vercel rejected the request (' . $response->describe() . ').');
+            throw new DeployFailed($this->connectionProblem($response));
         }
         return sprintf('Connected to Vercel project "%s".', (string) ($response->json()['name'] ?? $this->project));
+    }
+
+    private function connectionProblem(HttpResponse $response): string
+    {
+        $answer = $response->describe();
+        return match ($response->status) {
+            0 => sprintf(__('Vercel could not be reached (%s). Check that this server can open api.vercel.com.', 'wp2vercel'), $answer),
+            401, 403 => sprintf(
+                __('Vercel did not accept the access token (%s). Check the token. When the project belongs to a team, fill in the Team ID and use a token that can reach that team.', 'wp2vercel'),
+                $answer
+            ),
+            default => 'Vercel rejected the request (' . $answer . ').',
+        };
     }
 
     public function advance(array $state, Manifest $manifest, Deadline $deadline, callable $log): array
@@ -113,7 +126,11 @@ final class VercelDeployer implements Deployer
             return $state;
         }
         if (!$response->ok() || empty($data['id'])) {
-            throw new DeployFailed('Vercel did not accept the deployment (' . $response->describe() . ').');
+            throw new DeployFailed(
+                in_array($response->status, [0, 401, 403], true)
+                    ? $this->connectionProblem($response)
+                    : 'Vercel did not accept the deployment (' . $response->describe() . ').'
+            );
         }
 
         $state['id'] = (string) $data['id'];

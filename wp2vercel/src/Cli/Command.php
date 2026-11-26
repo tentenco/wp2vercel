@@ -32,7 +32,7 @@ final class Command
      * : Comma-separated post IDs. Publishes only those pages into the existing output.
      *
      * [--skip-deploy]
-     * : Export the files without pushing to GitHub or Vercel.
+     * : Export the files without pushing to GitHub, Vercel or Netlify.
      *
      * [--fail-on-leak]
      * : Exit with an error when the leak scan reports findings.
@@ -64,6 +64,10 @@ final class Command
         $build = $this->runner->runToCompletion($build->id);
         $this->runner->logger()->listen(null);
 
+        if ($build->isWaiting()) {
+            WP_CLI::warning(sprintf('Publish #%d is paused and waiting: %s.', $build->id, (string) ($build->state['waiting']['reason'] ?? 'paused')));
+            return;
+        }
         if ($build->status !== Build::STATUS_COMPLETED) {
             WP_CLI::error($build->message);
         }
@@ -151,16 +155,17 @@ final class Command
      * : get, set or list.
      *
      * [<key>]
-     * : Setting name. Secrets: github_token, vercel_token, fetch_basic_auth_password.
+     * : Setting name. Secrets: github_token, vercel_token, netlify_token, fetch_basic_auth_password.
      *
      * [<value>]
-     * : New value for set.
+     * : New value for set. For a secret, - reads the value from standard input.
      *
      * ## EXAMPLES
      *
      *     wp wp2vercel config list
      *     wp wp2vercel config set production_url https://www.example.com
      *     wp wp2vercel config set deploy_target vercel
+     *     wp wp2vercel config set github_token - < token.txt
      *
      * @when after_wp_load
      */
@@ -180,30 +185,45 @@ final class Command
             return;
         }
         if ($key === null) {
-            WP_CLI::error('Name a setting.');
+            WP_CLI::error('Name a setting. `wp wp2vercel config list` shows all of them.');
         }
         $isSecret = in_array($key, Secrets::NAMES, true);
         if (!$isSecret && !array_key_exists($key, $this->settings->all())) {
             WP_CLI::error('Unknown setting: ' . $key);
         }
         if ($action === 'get') {
-            WP_CLI::log($isSecret ? ($this->secrets->has($key) ? '(set)' : '(empty)') : (string) wp_json_encode($this->settings->all()[$key]));
+            WP_CLI::log($isSecret ? ($this->secrets->has($key) ? '(set)' : '(empty)') : self::shown($this->settings->all()[$key]));
             return;
         }
         if ($action !== 'set' || $value === null) {
             WP_CLI::error('Usage: wp wp2vercel config set <key> <value>');
         }
+        if (($running = $this->runner->runningPublish()) !== null) {
+            WP_CLI::error(BuildRunner::settingsWaitMessage($running->id));
+        }
         if ($isSecret) {
-            $this->secrets->set($key, $value);
+            $secret = $value === '-' ? trim((string) stream_get_contents(STDIN)) : $value;
+            if ($secret === '') {
+                WP_CLI::error($key . ' was not changed: nothing was read from standard input.');
+            }
+            $this->secrets->set($key, $secret);
             WP_CLI::success($key . ' saved.');
             return;
         }
+        if (Settings::rejected([$key => $value]) !== []) {
+            WP_CLI::error(sprintf('%1$s was not changed: %2$s is not a valid value.', $key, self::shown($value)));
+        }
         $saved = $this->settings->update([$key => $value]);
-        WP_CLI::success($key . ' = ' . wp_json_encode($saved[$key]));
+        WP_CLI::success($key . ' = ' . self::shown($saved[$key]));
+    }
+
+    private static function shown(mixed $value): string
+    {
+        return (string) wp_json_encode($value, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
     }
 
     /**
-     * Checks the GitHub or Vercel credentials.
+     * Checks the GitHub, Vercel or Netlify credentials.
      *
      * @when after_wp_load
      */

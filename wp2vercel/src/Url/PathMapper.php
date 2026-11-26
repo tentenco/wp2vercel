@@ -4,9 +4,16 @@ declare(strict_types=1);
 
 namespace WP2Vercel\Url;
 
+use WP2Vercel\Utf8;
+
 final class PathMapper
 {
     private const MAX_SEGMENT_BYTES = 200;
+    private const WINDOWS_DEVICE_NAME = '~^(?:con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)~i';
+
+    public function __construct(private readonly bool $windowsFileNames = PHP_OS_FAMILY === 'Windows')
+    {
+    }
 
     public function map(string $urlPath, ContentKind $kind): ?MappedPath
     {
@@ -18,6 +25,7 @@ final class PathMapper
 
         $endsWithSlash = str_ends_with($decoded, '/');
         $segments = [];
+        $stored = [];
         foreach (explode('/', trim($decoded, '/')) as $segment) {
             if ($segment === '') {
                 continue;
@@ -25,17 +33,20 @@ final class PathMapper
             if ($segment === '.' || $segment === '..') {
                 return null;
             }
-            $segments[] = self::safeSegment($segment);
+            $safe = self::safeSegment($segment);
+            $segments[] = $safe;
+            $stored[] = $this->windowsFileNames && preg_match(self::WINDOWS_DEVICE_NAME, $safe) === 1 ? '_' . $safe : $safe;
         }
+        $renamed = $stored !== $segments;
 
         $isFile = !$endsWithSlash && $segments !== [] && UrlResolver::hasFileExtension('/' . end($segments));
         if ($isFile) {
-            return new MappedPath(implode('/', $segments), null);
+            return new MappedPath(implode('/', $stored), $renamed ? '/' . implode('/', $segments) : null);
         }
 
-        $directory = implode('/', $segments);
+        $directory = implode('/', $stored);
         $file = ($directory === '' ? '' : $directory . '/') . $kind->indexFileName();
-        $rewriteSource = $kind === ContentKind::Html ? null : '/' . ($directory === '' ? '' : $directory);
+        $rewriteSource = $kind === ContentKind::Html && !$renamed ? null : '/' . implode('/', $segments);
 
         return new MappedPath($file, $rewriteSource);
     }
@@ -48,6 +59,6 @@ final class PathMapper
         }
         $extension = UrlResolver::extension($segment);
         $suffix = '-' . substr(sha1($segment), 0, 12) . ($extension === '' ? '' : '.' . $extension);
-        return mb_strcut($segment, 0, self::MAX_SEGMENT_BYTES - strlen($suffix), 'UTF-8') . $suffix;
+        return Utf8::cut($segment, self::MAX_SEGMENT_BYTES - strlen($suffix)) . $suffix;
     }
 }

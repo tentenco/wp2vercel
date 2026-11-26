@@ -11,6 +11,9 @@ use RuntimeException;
 
 final class SiteDirectory
 {
+    private const RENAME_ATTEMPTS = 5;
+    private const RENAME_PAUSE_MICROSECONDS = 200000;
+
     public const SUFFIX_OPTION = 'wp2vercel_directory_suffix';
 
     private const SITE = 'site';
@@ -79,12 +82,28 @@ final class SiteDirectory
     public function prepareStaging(int $buildId): string
     {
         $this->protect();
-        foreach (glob($this->base . '/staging-*', GLOB_ONLYDIR) ?: [] as $stale) {
-            $this->remove($stale);
-        }
+        $this->discardAllStaging();
         $root = $this->root($buildId, true);
         $this->ensureDirectory($this->site($root));
         return $root;
+    }
+
+    public function discardStaging(int $buildId): void
+    {
+        $this->remove($this->root($buildId, true));
+    }
+
+    public function discardAllStaging(): void
+    {
+        foreach (glob($this->base . '/staging-*', GLOB_ONLYDIR) ?: [] as $stale) {
+            $this->remove($stale);
+        }
+    }
+
+    public function unwritableFolder(): string
+    {
+        $folder = is_dir($this->base) ? $this->base : dirname($this->base);
+        return wp_is_writable($folder) ? '' : $folder;
     }
 
     public function promote(int $buildId): void
@@ -93,23 +112,36 @@ final class SiteDirectory
         $current = $this->root(0, false);
         $previous = $this->base . '/previous';
         $this->remove($previous);
-        if (is_dir($current) && !rename($current, $previous)) {
-            throw new RuntimeException('Could not move the current output aside.');
+        if (is_dir($current) && !self::renameSoon($current, $previous)) {
+            throw StorageFailed::because('the current version could not be moved aside');
         }
-        if (!rename($staging, $current)) {
+        if (!self::renameSoon($staging, $current)) {
             if (is_dir($previous)) {
-                rename($previous, $current);
+                self::renameSoon($previous, $current);
             }
-            throw new RuntimeException('Could not promote the staged output.');
+            throw StorageFailed::because('the new version could not be put in place');
         }
         $this->remove($previous);
+    }
+
+    private static function renameSoon(string $from, string $to): bool
+    {
+        for ($attempt = 1; $attempt <= self::RENAME_ATTEMPTS; $attempt++) {
+            if (@rename($from, $to)) {
+                return true;
+            }
+            if ($attempt < self::RENAME_ATTEMPTS) {
+                usleep(self::RENAME_PAUSE_MICROSECONDS * $attempt);
+            }
+        }
+        return false;
     }
 
     public function write(string $root, string $relativePath, string $content): void
     {
         $target = $this->target($root, $relativePath);
         if (file_put_contents($target, $content) === false) {
-            throw new RuntimeException('Could not write ' . $relativePath);
+            throw StorageFailed::because('could not write ' . $relativePath);
         }
     }
 
@@ -117,7 +149,7 @@ final class SiteDirectory
     {
         $target = $this->target($root, $relativePath);
         if (!copy($sourceFile, $target)) {
-            throw new RuntimeException('Could not copy ' . $relativePath);
+            throw StorageFailed::because('could not copy ' . $relativePath);
         }
     }
 
@@ -177,19 +209,20 @@ final class SiteDirectory
             if ($entry->isDir()) {
                 $this->ensureDirectory($target);
             } elseif (!copy($entry->getPathname(), $target)) {
-                throw new RuntimeException('Could not copy ' . $entry->getFilename());
+                throw StorageFailed::because('could not copy ' . $entry->getFilename());
             }
         }
     }
 
     public function destroy(): void
     {
-        foreach (glob($this->base . '/{,.}[!.]*', GLOB_BRACE) ?: [] as $entry) {
-            $this->remove($entry);
+        if (!is_dir($this->base)) {
+            return;
         }
-        if (is_dir($this->base)) {
-            rmdir($this->base);
+        foreach (array_diff(scandir($this->base) ?: [], ['.', '..']) as $name) {
+            $this->remove($this->base . '/' . $name);
         }
+        rmdir($this->base);
     }
 
     private function target(string $root, string $relativePath): string
@@ -212,7 +245,7 @@ final class SiteDirectory
             throw new RuntimeException('A file blocks the directory ' . basename($directory));
         }
         if (!mkdir($directory, 0755, true) && !is_dir($directory)) {
-            throw new RuntimeException('Could not create directory ' . $directory);
+            throw StorageFailed::because('could not create the folder ' . $directory);
         }
     }
 }

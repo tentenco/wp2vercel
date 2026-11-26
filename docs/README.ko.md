@@ -15,7 +15,7 @@ WP2Vercel은 WordPress 플러그인입니다. 사이트를 정적 파일로 내�
 
 이 저장소에는 무료 오픈소스인 Community 에디션이 들어 있습니다. 유료 에디션은 여기에 기능을 더한 것으로, [wp2vercel.com/pricing](https://wp2vercel.com/pricing)에서 설명합니다.
 
-> **상태: 얼리 액세스.** 버전 0.1.0은 첫 개발 릴리스입니다. 먼저 스테이징 사본에서 사용해 보고, 운영 사이트를 옮기기 전에 [하지 않는 일](#하지-않는-일)을 읽어 보시기 바랍니다.
+> **버전 0.2.0.** 먼저 스테이징 사본에서 사용해 보고, 운영 사이트를 옮기기 전에 [하지 않는 일](#하지-않는-일)을 읽어 보시기 바랍니다. Pro와 Team 플랜은 [wp2vercel.com/ko/pricing](https://wp2vercel.com/ko/pricing)에서 구매할 수 있습니다.
 
 ![전체 게시 후의 Publish 화면: 파일 저장 완료, 리디렉션 기록 완료, 유출 검사에서 발견된 항목 없음](images/publish.png)
 
@@ -65,7 +65,7 @@ wp plugin install https://github.com/tentenco/wp2vercel/releases/latest/download
 2. 게시할 곳을 선택하고 토큰을 추가합니다. GitHub를 사용한다면 게시할 저장소 하나에만 *Contents: Read and write* 권한을 준 fine-grained 토큰을 만듭니다.
 3. 서버가 자신의 공개 주소에 접근할 수 없다면(Docker 환경이나 제로 트러스트 게이트웨이 뒤에서 흔한 경우입니다) 가져오기 주소(fetch address)를 `http://localhost`처럼 서버가 접근할 수 있는 주소로 설정합니다.
 4. **Save and test connection**(저장 및 연결 테스트)을 선택합니다.
-5. **Publish** 탭을 열고 **Publish site**(사이트 게시)를 선택합니다.
+5. **Publish** 탭을 열고 **Publish site**(사이트 게시)를 선택합니다. 첫 게시가 성공하기 전까지 이 탭에는 기본 고유주소 설정이나 서버가 접근할 수 없는 주소처럼 아직 처리해야 할 항목이 표시됩니다.
 
 ![Settings 화면: 공개 주소, 게시 대상, 저장소, 브랜치](images/settings.png)
 
@@ -127,6 +127,11 @@ define('WP2VERCEL_FETCH_BASIC_AUTH_PASSWORD', '…');
 | 더 넓은 검사 규칙: REST API 링크, 글쓴이 아카이브, 버전 문자열 | | 예 |
 | 게시 기록과 롤백 | | 예 |
 | 정적 사이트 검색 | | 예 |
+| 정적 사이트의 폼 | | 예 |
+| Polylang 및 WPML 다국어 사이트, 브라우저 언어에 따른 리디렉션 | | 예 |
+| 업로드한 미디어를 S3 호환 스토리지에 저장 | | 예 |
+| 배포 전 승인, 토큰 점검, 감사 로그 | | 예 |
+| 별도의 프런트엔드를 위한 JSON 콘텐츠 내보내기(헤드리스) | | 예 |
 | 지원 | GitHub Issues | 이메일 |
 
 요금제와 각 요금제에 포함된 내용은 [wp2vercel.com/pricing](https://wp2vercel.com/pricing)에 나와 있습니다.
@@ -137,8 +142,11 @@ define('WP2VERCEL_FETCH_BASIC_AUTH_PASSWORD', '…');
 git clone https://github.com/tentenco/wp2vercel.git
 cd wp2vercel
 
-# 단위 테스트(PHP 8.1 이상, PHPUnit 10 이상, HTML API용 WordPress 체크아웃 필요)
-cd wp2vercel && WP_CORE_DIR=/path/to/wordpress phpunit
+# Docker에서 PHP 8.1~8.4로 모든 검사 실행
+bin/ci.sh
+
+# 로컬 PHP로 단위 테스트(PHP 8.1 이상, PHPUnit 10 이상, HTML API용 WordPress 체크아웃 필요)
+(cd wp2vercel && WP_CORE_DIR=/path/to/wordpress phpunit)
 
 # http://localhost:8089 에서 실행되는 로컬 WordPress(admin / admin)
 docker compose -f dev/docker-compose.yml up -d

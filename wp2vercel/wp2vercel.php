@@ -2,8 +2,9 @@
 /**
  * Plugin Name:       WP2Vercel
  * Plugin URI:        https://wp2vercel.com/
+ * Update URI:        https://wp2vercel.com/wp2vercel
  * Description:       Keep WordPress private. Publish the public site as static files to your own Git repository and Vercel account.
- * Version:           0.1.0
+ * Version:           0.2.0
  * Requires at least: 6.5
  * Requires PHP:      8.1
  * Author:            Tenten
@@ -20,7 +21,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('WP2VERCEL_VERSION', '0.1.0');
+define('WP2VERCEL_VERSION', '0.2.0');
 define('WP2VERCEL_FILE', __FILE__);
 define('WP2VERCEL_DIR', __DIR__);
 

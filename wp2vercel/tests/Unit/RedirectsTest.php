@@ -77,4 +77,31 @@ final class RedirectsTest extends TestCase
         self::assertArrayNotHasKey('redirects', $data);
         self::assertSame([['source' => '/feed', 'destination' => '/feed/index.xml']], $data['rewrites']);
     }
+
+    public function testTheRootOfASiteUnderAPathLeadsToItsHomePage(): void
+    {
+        $config = new VercelConfig(true, [RedirectRule::create('/shop/old/', '/shop/new/')], [], '/shop/');
+        $data = $config->toArray();
+        self::assertSame(['source' => '/', 'destination' => '/shop/', 'statusCode' => 307], $data['redirects'][0]);
+        self::assertCount(2, $data['redirects']);
+        self::assertSame(2, $config->routeCount());
+        self::assertNull(RedirectRule::create('/', '/elsewhere/'));
+    }
+
+    public function testTheRootRedirectLeadsToAHomeWhoseAddressHasRouteCharacters(): void
+    {
+        $destination = static fn(string $home): string => (new VercelConfig(true, [], [], $home))->toArray()['redirects'][0]['destination'];
+        self::assertSame('/news%3A2024%28old%29/', $destination('/news:2024(old)/'));
+        self::assertSame('/%E5%8D%9A%E5%AE%A2/', $destination('/%E5%8D%9A%E5%AE%A2/'));
+        self::assertSame('/shop/', $destination('/shop/'));
+    }
+
+    public function testRewritesOfFilesKeepTheirAddressWithoutATrailingSlash(): void
+    {
+        $data = (new VercelConfig(true, [], ['/files/AUX.pdf' => 'files/_AUX.pdf', '/con' => '_con/index.html']))->toArray();
+        self::assertSame([
+            ['source' => '/con/', 'destination' => '/_con/index.html'],
+            ['source' => '/files/AUX.pdf', 'destination' => '/files/_AUX.pdf'],
+        ], $data['rewrites']);
+    }
 }

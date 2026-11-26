@@ -1,0 +1,2 @@
+#!/bin/sh
+exec "$(git rev-parse --show-toplevel)/bin/ci.sh" 8.1 8.4

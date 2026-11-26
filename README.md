@@ -9,11 +9,11 @@ WordPress in private. Static on Vercel.
 
 English · [繁體中文](docs/README.zh-Hant.md) · [简体中文](docs/README.zh-Hans.md) · [日本語](docs/README.ja.md) · [한국어](docs/README.ko.md)
 
-WP2Vercel is a WordPress plugin. It exports your site as static files and publishes them to a GitHub repository or a Vercel project that you own. Visitors, search engines, scanners and AI agents reach the static copy. WordPress, PHP, the database and the login page can stay on a private network, where editors keep working the way they do today.
+WP2Vercel is a WordPress plugin. It exports your site as static files and publishes them to a GitHub repository, a Vercel project or a Netlify site that you own. Visitors, search engines, scanners and AI agents reach the static copy. WordPress, PHP, the database and the login page can stay on a private network, where editors keep working the way they do today.
 
 This repository holds the free, open-source Community edition. Paid editions add to it and are described at [wp2vercel.com/pricing](https://wp2vercel.com/pricing).
 
-> **Status: early access.** Version 0.1.0 is the first development release. Try it on a staging copy first and read [What it does not do](#what-it-does-not-do) before you move a production site.
+> **Version 0.2.0.** Try it on a staging copy first and read [What it does not do](#what-it-does-not-do) before you move a production site. Pro and Team plans are sold at [wp2vercel.com/pricing](https://wp2vercel.com/pricing).
 
 ![The Publish screen after a full publish: files saved, redirects written, leak scan clean](docs/images/publish.png)
 
@@ -25,12 +25,12 @@ This repository holds the free, open-source Community edition. Paid editions add
 2. Each page and asset is saved as a file. Every mention of the private WordPress address is rewritten. Links inside the site become root-relative, and canonical tags, social tags and sitemaps use the public address you set.
 3. Redirects become real `301` and `302` rules in `vercel.json`. They are read from WordPress itself and from Redirection, Yoast SEO Premium, Rank Math, Safe Redirect Manager and Simple 301 Redirects.
 4. A leak scan checks the finished files for the private address and for file types that should not be public. It reports the file and the line.
-5. The result goes out as one commit on a GitHub branch, or as a deployment through the Vercel API. Only outbound requests are made, so WordPress does not have to accept connections from the internet.
+5. The result goes out as one commit on a GitHub branch, or as a deployment through the Vercel or Netlify API. Only outbound requests are made, so WordPress does not have to accept connections from the internet.
 
 ## Features
 
 - Full-site export, and single-page publishing from the Posts and Pages lists.
-- Three publish targets: a GitHub branch (Vercel deploys from the repository), a direct Vercel deployment, or files on the server only.
+- Four publish targets: a GitHub branch (Vercel or Netlify deploys from the repository), a direct Vercel deployment, a direct Netlify deploy, or files on the server only.
 - GitHub pushes upload changed files only and remove deleted ones, as one commit per publish.
 - `vercel.json` with redirects, trailing-slash behaviour and basic security headers.
 - Leak scan for the private address in plain, JSON-escaped and URL-encoded form.
@@ -44,7 +44,7 @@ This repository holds the free, open-source Community edition. Paid editions add
 - WordPress 6.5 or newer
 - PHP 8.1 or newer
 - A permalink structure other than "Plain"
-- For publishing: a GitHub repository connected to Vercel, or a Vercel project and token
+- For publishing: a GitHub repository connected to Vercel or Netlify, a Vercel project and token, or a Netlify site and personal access token
 
 ## Install
 
@@ -63,7 +63,7 @@ wp plugin install https://github.com/tentenco/wp2vercel/releases/latest/download
 2. Choose where to publish and add a token. For GitHub, create a fine-grained token with *Contents: Read and write* on the one repository you publish to.
 3. If the server cannot reach its own public address (common in Docker and behind a zero-trust gateway), set the fetch address to one it can reach, such as `http://localhost`.
 4. Choose **Save and test connection**.
-5. Open the **Publish** tab and choose **Publish site**.
+5. Open the **Publish** tab and choose **Publish site**. Until the first publish succeeds, the tab lists what still needs attention, such as plain permalinks or an address the server cannot reach.
 
 ![Settings: public address, publish target, repository and branch](docs/images/settings.png)
 
@@ -109,7 +109,8 @@ Risks that remain:
 
 Limits of this release:
 
-- The GitHub and Vercel publishers are covered by automated tests against the documented API responses. They have not been through a wide range of real accounts yet.
+- The GitHub, Vercel and Netlify publishers are covered by automated tests against the documented API responses. They have not been through a wide range of real accounts yet; Netlify has only been run against a stand-in for its API.
+- With Netlify, Pro's form forwarding and isolation probe are not available, because both are Vercel functions. The settings say so.
 - Multisite, WordPress in a subdirectory, WPML and Polylang, and large page-builder sites have not been tested.
 - Vercel accepts 2,048 routes in `vercel.json`. The plugin warns when your redirects go over that.
 
@@ -118,13 +119,18 @@ Limits of this release:
 | | Community (this repository) | Paid editions |
 | --- | --- | --- |
 | Full-site and single-page static export | Yes | Yes |
-| Publish to GitHub or Vercel | Yes | Yes |
+| Publish to GitHub, Vercel or Netlify | Yes | Yes |
 | Redirect export to `vercel.json` | Yes | Yes |
 | Leak scan for the private address | Reports | Reports and can stop the publish |
 | Publish only changed pages, on a schedule or after edits | | Yes |
 | Wider scan rules: REST API links, author archives, version strings | | Yes |
 | Publish history and rollback | | Yes |
 | Search on the static site | | Yes |
+| Forms on the static site | | Yes |
+| Polylang and WPML sites, with a browser-language redirect | | Yes |
+| Uploaded media stored in S3-compatible storage | | Yes |
+| Approval before deploying, token checks and an audit log | | Yes |
+| Content as JSON for a separate front end (headless) | | Yes |
 | Support | GitHub Issues | Email |
 
 Plans and what each one includes are listed at [wp2vercel.com/pricing](https://wp2vercel.com/pricing).
@@ -135,8 +141,11 @@ Plans and what each one includes are listed at [wp2vercel.com/pricing](https://w
 git clone https://github.com/tentenco/wp2vercel.git
 cd wp2vercel
 
-# unit tests (needs PHP 8.1+, PHPUnit 10+ and a WordPress checkout for the HTML API)
-cd wp2vercel && WP_CORE_DIR=/path/to/wordpress phpunit
+# every check on PHP 8.1 to 8.4, in Docker
+bin/ci.sh
+
+# unit tests on your own PHP (needs PHP 8.1+, PHPUnit 10+ and a WordPress checkout for the HTML API)
+(cd wp2vercel && WP_CORE_DIR=/path/to/wordpress phpunit)
 
 # local WordPress on http://localhost:8089 (admin / admin)
 docker compose -f dev/docker-compose.yml up -d
@@ -157,4 +166,4 @@ The plugin lives in [`wp2vercel/`](wp2vercel). Filters and actions for extending
 
 WP2Vercel is free software, released under the [GNU General Public License, version 2 or later](LICENSE).
 
-WP2Vercel is made by [Tenten](https://tenten.co). It is an independent project. It is not affiliated with, endorsed by or sponsored by Vercel Inc., Automattic Inc. or the WordPress Foundation. Vercel is a trademark of Vercel Inc. WordPress is a trademark of the WordPress Foundation.
+WP2Vercel is made by [Tenten](https://tenten.co). It is an independent project. It is not affiliated with, endorsed by or sponsored by Vercel Inc., Netlify, Inc., Automattic Inc. or the WordPress Foundation. Vercel is a trademark of Vercel Inc. Netlify is a trademark of Netlify, Inc. WordPress is a trademark of the WordPress Foundation.

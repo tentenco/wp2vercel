@@ -1,0 +1,804 @@
+# Copyright (C) 2026 Tenten
+# This file is distributed under the GPL-2.0-or-later.
+msgid ""
+msgstr ""
+"Project-Id-Version: WP2Vercel 0.2.0\n"
+"Report-Msgid-Bugs-To: https://wp2vercel.com/\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-11-26T02:14:36+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.12.0\n"
+"X-Domain: wp2vercel\n"
+
+#. Plugin Name of the plugin
+#: wp2vercel.php
+msgid "WP2Vercel"
+msgstr ""
+
+#. Plugin URI of the plugin
+#: wp2vercel.php
+msgid "https://wp2vercel.com/"
+msgstr ""
+
+#. Description of the plugin
+#: wp2vercel.php
+msgid "Keep WordPress private. Publish the public site as static files to your own Git repository and Vercel account."
+msgstr ""
+
+#. Author of the plugin
+#: wp2vercel.php
+msgid "Tenten"
+msgstr ""
+
+#. Author URI of the plugin
+#: wp2vercel.php
+msgid "https://tenten.co/"
+msgstr ""
+
+#: src/Admin/AdminPage.php:66
+msgid "Publish to static site"
+msgstr ""
+
+#: src/Admin/AdminPage.php:75
+#: assets/admin.js:706
+msgid "Publish"
+msgstr ""
+
+#: src/Admin/CopyDownload.php:36
+msgid "You are not allowed to download the copy of this site."
+msgstr ""
+
+#: src/Admin/CopyDownload.php:40
+msgid "PHP on this server has no zip support (the zip extension), so the copy cannot be packed here."
+msgstr ""
+
+#: src/Admin/CopyDownload.php:43
+#, php-format
+msgid "Publish #%d has not ended yet. Download the copy when it has, so the zip holds one whole version."
+msgstr ""
+
+#: src/Admin/CopyDownload.php:83
+msgid "Back to WP2Vercel"
+msgstr ""
+
+#: src/Admin/CopyDownload.php:84
+msgid "Download the copy"
+msgstr ""
+
+#: src/Admin/RestController.php:114
+msgid "Choose GitHub, Vercel or Netlify as the publish target first."
+msgstr ""
+
+#: src/Admin/SiteHealth.php:28
+msgid "What support needs to know about publishing on this site. Access tokens are never part of it."
+msgstr ""
+
+#: src/Build/BuildRunner.php:62
+#, php-format
+msgid "Publish #%d is still running."
+msgstr ""
+
+#: src/Build/BuildRunner.php:85
+msgid "The last swap of the copy on this server failed, so this publish runs in full instead of only the changed pages."
+msgstr ""
+
+#: src/Build/BuildRunner.php:105
+#, php-format
+msgid "Publish #%d is running, so the settings were not saved: a change now would apply to only part of that publish. Save again when it has ended, or cancel it first."
+msgstr ""
+
+#: src/Build/BuildRunner.php:117
+msgid "Cancelled."
+msgstr ""
+
+#: src/Build/BuildRunner.php:174
+#, php-format
+msgid "The publish was stopped: the server ended it %1$d times in a row at the step \"%2$s\", most likely at its PHP time or memory limit. The PHP error log of the server has the reason."
+msgstr ""
+
+#: src/Build/Readiness.php:29
+#, php-format
+msgid "WordPress can load its own home page from %s."
+msgstr ""
+
+#: src/Build/Readiness.php:32
+#, php-format
+msgid "WordPress cannot write to %s, where the published files are kept. Make the web server user the owner of that folder, or ask your host to."
+msgstr ""
+
+#: src/Build/Readiness.php:52
+#, php-format
+msgid "The home page at %s came back empty. Open the site in a browser to see what is wrong."
+msgstr ""
+
+#: src/Build/Readiness.php:68
+#, php-format
+msgid "The home page could not be saved. Check that WordPress can load its own pages from %1$s. %2$s"
+msgstr ""
+
+#: src/Build/Readiness.php:75
+#, php-format
+msgid "The home page at %1$s could not be saved (%2$s)."
+msgstr ""
+
+#: src/Build/Readiness.php:81
+#, php-format
+msgid "WordPress could not load its own home page from %1$s%2$s. %3$s"
+msgstr ""
+
+#: src/Build/Readiness.php:91
+#, php-format
+msgid "The home page at %1$s redirects to %2$s, so there is no home page to save. Check the Fetch address under Settings → How WordPress fetches itself, and any plugin that redirects visitors."
+msgstr ""
+
+#: src/Build/Readiness.php:101
+#, php-format
+msgid "The home page at %1$s answered HTTP %2$d, so WordPress is not allowed to read it. If the site is password protected, enter the Basic auth user and password under Settings → How WordPress fetches itself."
+msgstr ""
+
+#: src/Build/Readiness.php:107
+#, php-format
+msgid "The home page at %1$s answered HTTP %2$d instead of a page. Open the site in a browser to see what is wrong."
+msgstr ""
+
+#: src/Build/Readiness.php:115
+msgid "If this server cannot reach that address, enter one it can reach as Fetch address under Settings → How WordPress fetches itself."
+msgstr ""
+
+#: src/Build/Readiness.php:121
+msgid "Permalinks use a structure, so every page has its own address."
+msgstr ""
+
+#: src/Build/Readiness.php:122
+msgid "Plain permalinks cannot be exported. Choose a permalink structure under Settings → Permalinks."
+msgstr ""
+
+#: src/Build/Readiness.php:128
+#, php-format
+msgid "Public site address: %s"
+msgstr ""
+
+#: src/Build/Readiness.php:129
+msgid "No public site address yet. Until you enter one on the Settings tab, canonical tags, social tags and sitemaps are written without a domain."
+msgstr ""
+
+#: src/Build/Readiness.php:141
+msgid "Publish target: this server only. The files are saved here and nothing is deployed until you choose GitHub, Vercel or Netlify on the Settings tab."
+msgstr ""
+
+#: src/Build/Readiness.php:144
+#, php-format
+msgid "Publish target: %s. Save and test connection on the Settings tab checks the token."
+msgstr ""
+
+#: src/Build/Readiness.php:145
+#, php-format
+msgid "Publish target: %1$s. %2$s"
+msgstr ""
+
+#: src/Build/Steps/DeployStep.php:74
+#, php-format
+msgid "The new version could not be put in place on this server: %s. The next publish runs in full."
+msgstr ""
+
+#: src/Build/Steps/DeployStep.php:75
+#, php-format
+msgid "The site was deployed, but the copy on this server could not be replaced: %s. The next publish runs in full, so the deployed site does not fall back to the older copy."
+msgstr ""
+
+#: src/Build/Steps/FinalizeStep.php:36
+msgid "Nothing was published."
+msgstr ""
+
+#: src/Build/Steps/FinalizeStep.php:39
+msgid "No HTML pages were saved, so nothing was published."
+msgstr ""
+
+#: src/Build/Steps/ScanStep.php:68
+#, php-format
+msgid "%1$d page has a form that sends its entries to WordPress. On the published site that form does not send anything. First: %2$s"
+msgid_plural "%1$d pages have a form that sends its entries to WordPress. On the published site those forms do not send anything. First: %2$s"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/Build/Steps/ScanStep.php:93
+#, php-format
+msgid "Publishing stopped: the leak scan reported %d issue. Nothing was deployed."
+msgid_plural "Publishing stopped: the leak scan reported %d issues. Nothing was deployed."
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/Build/Steps/SetupStep.php:26
+msgid "Plain permalinks cannot be exported. Choose a permalink structure under Settings → Permalinks first."
+msgstr ""
+
+#: src/Build/Steps/SetupStep.php:42
+msgid "Run a full publish once before publishing single pages."
+msgstr ""
+
+#: src/Build/Steps/SetupStep.php:74
+msgid "The saved version to restore no longer exists."
+msgstr ""
+
+#: src/Deploy/GitHubDeployer.php:31
+msgid "Add a GitHub access token before publishing to GitHub."
+msgstr ""
+
+#: src/Deploy/GitHubDeployer.php:34
+msgid "Enter the GitHub repository as owner/name before publishing to GitHub."
+msgstr ""
+
+#: src/Deploy/GitHubDeployer.php:37
+msgid "Enter the branch that receives published files."
+msgstr ""
+
+#: src/Deploy/GitHubDeployer.php:59
+#, php-format
+msgid "GitHub could not be reached (%s). Check that this server can open api.github.com."
+msgstr ""
+
+#: src/Deploy/GitHubDeployer.php:60
+#, php-format
+msgid "GitHub did not accept the access token (%s). It may be mistyped, expired or revoked. Create a new token and paste it again."
+msgstr ""
+
+#: src/Deploy/GitHubDeployer.php:62
+#, php-format
+msgid "GitHub refused the request for %1$s (%2$s). When this is about permissions: the token needs read and write access to Contents on this repository, and in an organization with single sign-on it has to be authorized for that organization."
+msgstr ""
+
+#: src/Deploy/GitHubDeployer.php:67
+#, php-format
+msgid "GitHub cannot find %1$s with this access token (%2$s). Check the repository name, and that the token was given access to this repository."
+msgstr ""
+
+#: src/Deploy/NetlifyDeployer.php:34
+msgid "Add a Netlify access token before publishing to Netlify."
+msgstr ""
+
+#: src/Deploy/NetlifyDeployer.php:37
+msgid "Enter the Netlify site before publishing to Netlify."
+msgstr ""
+
+#: src/Deploy/NetlifyDeployer.php:242
+#, php-format
+msgid "Netlify could not be reached (%s). Check that this server can open api.netlify.com."
+msgstr ""
+
+#: src/Deploy/NetlifyDeployer.php:243
+#, php-format
+msgid "Netlify did not accept the access token (%s). Check the token, and that it belongs to a member of the team that owns the site."
+msgstr ""
+
+#: src/Deploy/NetlifyDeployer.php:245
+#, php-format
+msgid "Netlify has no site \"%1$s\" that this token can see (%2$s). Enter the site name as in name.netlify.app, or the Site ID under Site configuration → General, and use a token of a member of its team."
+msgstr ""
+
+#: src/Deploy/VercelDeployer.php:33
+msgid "Add a Vercel access token before publishing to Vercel."
+msgstr ""
+
+#: src/Deploy/VercelDeployer.php:36
+msgid "Enter the Vercel project name before publishing to Vercel."
+msgstr ""
+
+#: src/Deploy/VercelDeployer.php:57
+#, php-format
+msgid "Vercel could not be reached (%s). Check that this server can open api.vercel.com."
+msgstr ""
+
+#: src/Deploy/VercelDeployer.php:59
+#, php-format
+msgid "Vercel did not accept the access token (%s). Check the token. When the project belongs to a team, fill in the Team ID and use a token that can reach that team."
+msgstr ""
+
+#: src/Output/StorageFailed.php:14
+#, php-format
+msgid "WordPress could not save the published files: %s. Check that the web server user owns wp-content/uploads and may write to it, and that the disk is not full."
+msgstr ""
+
+#: assets/admin.js:29
+msgid "Preparing"
+msgstr ""
+
+#: assets/admin.js:30
+msgid "Listing content"
+msgstr ""
+
+#: assets/admin.js:31
+msgid "Saving pages"
+msgstr ""
+
+#: assets/admin.js:32
+msgid "Writing vercel.json"
+msgstr ""
+
+#: assets/admin.js:33
+msgid "Scanning for leaks"
+msgstr ""
+
+#: assets/admin.js:34
+msgid "Publishing"
+msgstr ""
+
+#: assets/admin.js:38
+msgid "Private address"
+msgstr ""
+
+#: assets/admin.js:39
+msgid "Sensitive file"
+msgstr ""
+
+#: assets/admin.js:179
+msgid "This publish is paused and waiting to be resumed."
+msgstr ""
+
+#: assets/admin.js:183
+#, js-format
+msgid "No progress for %d minutes. The server may be ending the publish at its PHP time or memory limit. It is tried again by itself and stops with a reason after a few more attempts. You can also cancel it now."
+msgstr ""
+
+#: assets/admin.js:188
+#, js-format
+msgid "%1$d of %2$d URLs processed"
+msgstr ""
+
+#: assets/admin.js:196
+msgid "Result"
+msgstr ""
+
+#: assets/admin.js:197
+msgid "Files"
+msgstr ""
+
+#: assets/admin.js:200
+msgid "URLs"
+msgstr ""
+
+#: assets/admin.js:200
+#, js-format
+msgid "Saved: %1$d · Redirects: %2$d · Failed: %3$d"
+msgstr ""
+
+#: assets/admin.js:206
+msgid "Branch"
+msgstr ""
+
+#: assets/admin.js:206
+msgid "Deployment"
+msgstr ""
+
+#: assets/admin.js:210
+msgid "Commit"
+msgstr ""
+
+#: assets/admin.js:219
+msgid "Leak scan: no reference to the private WordPress address in the published files."
+msgstr ""
+
+#: assets/admin.js:223
+#, js-format
+msgid "Leak scan: %d finding"
+msgid_plural "Leak scan: %d findings"
+msgstr[0] ""
+msgstr[1] ""
+
+#: assets/admin.js:225
+msgid "Publishing was stopped because of these findings. Nothing was deployed. Change the pages listed here, then publish again."
+msgstr ""
+
+#: assets/admin.js:226
+msgid "These published files still mention the private WordPress address, or are file types that should not be public."
+msgstr ""
+
+#: assets/admin.js:232
+msgid "Type"
+msgstr ""
+
+#: assets/admin.js:233
+msgid "File"
+msgstr ""
+
+#: assets/admin.js:234
+msgid "Line"
+msgstr ""
+
+#: assets/admin.js:235
+msgid "Context"
+msgstr ""
+
+#: assets/admin.js:254
+#, js-format
+msgid "%d URL could not be saved"
+msgid_plural "%d URLs could not be saved"
+msgstr[0] ""
+msgstr[1] ""
+
+#: assets/admin.js:259
+#: assets/admin.js:275
+#, js-format
+msgid "linked from %s"
+msgstr ""
+
+#: assets/admin.js:270
+#, js-format
+msgid "%d page was left out"
+msgid_plural "%d pages were left out"
+msgstr[0] ""
+msgstr[1] ""
+
+#: assets/admin.js:271
+msgid "These pages ask for a password or refuse visitors, so they are not part of the published site. A menu or link that points to one of them leads to the not-found page there."
+msgstr ""
+
+#: assets/admin.js:287
+#, js-format
+msgid "%d page has a form that will not send"
+msgid_plural "%d pages have a form that will not send"
+msgstr[0] ""
+msgstr[1] ""
+
+#: assets/admin.js:290
+msgid "These forms send their entries to WordPress, and the published site has no WordPress behind it. A visitor who fills one in gets an error and nothing arrives. Send the form to a form service instead, or take it off the page."
+msgstr ""
+
+#: assets/admin.js:320
+msgid "Ready:"
+msgstr ""
+
+#: assets/admin.js:321
+msgid "To do:"
+msgstr ""
+
+#: assets/admin.js:322
+msgid "Optional:"
+msgstr ""
+
+#: assets/admin.js:342
+msgid "Open Permalinks"
+msgstr ""
+
+#: assets/admin.js:347
+msgid "Open Settings"
+msgstr ""
+
+#: assets/admin.js:360
+msgid "Checking this site…"
+msgstr ""
+
+#: assets/admin.js:377
+msgid "Before the first publish"
+msgstr ""
+
+#: assets/admin.js:379
+msgid "Check again"
+msgstr ""
+
+#: assets/admin.js:386
+#: assets/admin.js:609
+msgid "Loading…"
+msgstr ""
+
+#: assets/admin.js:391
+msgid "Cancel"
+msgstr ""
+
+#: assets/admin.js:393
+msgid "Publish site"
+msgstr ""
+
+#: assets/admin.js:394
+msgid "Export only"
+msgstr ""
+
+#: assets/admin.js:396
+msgid "Download as zip"
+msgstr ""
+
+#: assets/admin.js:396
+msgid "The files of the last publish as they are saved on this server"
+msgstr ""
+
+#: assets/admin.js:404
+#, js-format
+msgid "Restore #%1$d · %2$s"
+msgstr ""
+
+#: assets/admin.js:404
+#, js-format
+msgid "Publish #%1$d · %2$s"
+msgstr ""
+
+#: assets/admin.js:414
+msgid "Nothing has been published yet."
+msgstr ""
+
+#: assets/admin.js:473
+msgid "Set in wp-config.php or the environment"
+msgstr ""
+
+#: assets/admin.js:479
+msgid "Saved. Type to replace."
+msgstr ""
+
+#: assets/admin.js:501
+msgid "Public site address needs a full address such as https://www.example.com."
+msgstr ""
+
+#: assets/admin.js:502
+msgid "Fetch address has to start with http:// or https://."
+msgstr ""
+
+#: assets/admin.js:503
+msgid "Repository has to be owner/name."
+msgstr ""
+
+#: assets/admin.js:504
+msgid "Publish branch can only contain letters, digits and the characters . _ - /."
+msgstr ""
+
+#: assets/admin.js:505
+msgid "Base branch can only contain letters, digits and the characters . _ - /."
+msgstr ""
+
+#: assets/admin.js:516
+#, js-format
+msgid "Publish #%d is running. Settings can be saved again when it has ended, so that one publish does not mix old and new settings."
+msgstr ""
+
+#: assets/admin.js:532
+msgid "Not saved, because the value is not valid:"
+msgstr ""
+
+#: assets/admin.js:534
+msgid "Everything else was saved."
+msgstr ""
+
+#: assets/admin.js:539
+msgid "Settings saved."
+msgstr ""
+
+#: assets/admin.js:559
+msgid "This server only"
+msgstr ""
+
+#: assets/admin.js:560
+msgid "GitHub (Vercel or Netlify deploys from the repository)"
+msgstr ""
+
+#: assets/admin.js:561
+msgid "Vercel (direct upload)"
+msgstr ""
+
+#: assets/admin.js:562
+msgid "Netlify (direct upload)"
+msgstr ""
+
+#: assets/admin.js:564
+msgid "Publish to"
+msgstr ""
+
+#: assets/admin.js:577
+msgid "Repository"
+msgstr ""
+
+#: assets/admin.js:577
+msgid "The repository has to exist with at least one commit. Import it as a project on Vercel or as a site on Netlify, and it deploys every publish."
+msgstr ""
+
+#: assets/admin.js:578
+msgid "Publish branch"
+msgstr ""
+
+#: assets/admin.js:578
+msgid "Each publish is one commit on this branch. Vercel or Netlify builds a preview from it; merge into your production branch to go live."
+msgstr ""
+
+#: assets/admin.js:579
+msgid "Base branch"
+msgstr ""
+
+#: assets/admin.js:579
+msgid "Used to create the publish branch the first time."
+msgstr ""
+
+#: assets/admin.js:580
+msgid "Directory"
+msgstr ""
+
+#: assets/admin.js:580
+msgid "repository root"
+msgstr ""
+
+#: assets/admin.js:581
+#: assets/admin.js:589
+#: assets/admin.js:597
+msgid "Access token"
+msgstr ""
+
+#: assets/admin.js:582
+msgid "A fine-grained token with Contents: read and write on this one repository. Create it on GitHub under Settings → Developer settings → Personal access tokens: "
+msgstr ""
+
+#: assets/admin.js:587
+msgid "Project name"
+msgstr ""
+
+#: assets/admin.js:588
+msgid "Team ID"
+msgstr ""
+
+#: assets/admin.js:588
+msgid "Leave empty for a personal account. For a team it is on Vercel under Team Settings → General → Team ID."
+msgstr ""
+
+#: assets/admin.js:590
+msgid "Create it on Vercel under Account Settings → Tokens, with the scope of the account or team that owns the project: "
+msgstr ""
+
+#: assets/admin.js:593
+#: assets/admin.js:601
+msgid "Release"
+msgstr ""
+
+#: assets/admin.js:593
+msgid "Publish straight to production instead of a preview URL"
+msgstr ""
+
+#: assets/admin.js:596
+msgid "Site"
+msgstr ""
+
+#: assets/admin.js:596
+msgid "The site has to exist on Netlify. Enter its name as in name.netlify.app, its address, or the Site ID under Site configuration → General."
+msgstr ""
+
+#: assets/admin.js:598
+msgid "A personal access token of a member of the team that owns the site. Create it on Netlify under User settings → Applications → Personal access tokens: "
+msgstr ""
+
+#: assets/admin.js:601
+msgid "Publish straight to the live site instead of a draft deploy with its own address"
+msgstr ""
+
+#: assets/admin.js:602
+msgid "Redirects"
+msgstr ""
+
+#: assets/admin.js:602
+msgid "Redirects and headers are written to _redirects and _headers, the files Netlify reads."
+msgstr ""
+
+#: assets/admin.js:612
+msgid "Addresses"
+msgstr ""
+
+#: assets/admin.js:614
+msgid "Private WordPress address"
+msgstr ""
+
+#: assets/admin.js:614
+msgid "Every mention of this address is removed from the published files."
+msgstr ""
+
+#: assets/admin.js:615
+msgid "Public site address"
+msgstr ""
+
+#: assets/admin.js:615
+msgid "Used for canonical tags, social tags and sitemaps."
+msgstr ""
+
+#: assets/admin.js:617
+msgid "Publish target"
+msgstr ""
+
+#: assets/admin.js:619
+msgid "Content"
+msgstr ""
+
+#: assets/admin.js:621
+msgid "Extra URLs"
+msgstr ""
+
+#: assets/admin.js:621
+msgid "One per line. For pages nothing links to."
+msgstr ""
+
+#: assets/admin.js:622
+msgid "Exclude"
+msgstr ""
+
+#: assets/admin.js:622
+msgid "One per line. Plain text matches anywhere in the path; wrap a regular expression in ~."
+msgstr ""
+
+#: assets/admin.js:623
+msgid "Extra redirects"
+msgstr ""
+
+#: assets/admin.js:623
+msgid "One per line: from, to, status. Redirects from Redirection, Yoast SEO Premium, Rank Math, Safe Redirect Manager and Simple 301 Redirects are included automatically."
+msgstr ""
+
+#: assets/admin.js:624
+msgid "Include"
+msgstr ""
+
+#: assets/admin.js:625
+msgid "RSS feeds"
+msgstr ""
+
+#: assets/admin.js:626
+msgid "Author archives (these expose login names)"
+msgstr ""
+
+#: assets/admin.js:629
+msgid "How WordPress fetches itself"
+msgstr ""
+
+#: assets/admin.js:632
+msgid "Fetch address"
+msgstr ""
+
+#: assets/admin.js:635
+msgid "On a multisite network only a network administrator can change this, because it decides which server the export reads from."
+msgstr ""
+
+#: assets/admin.js:636
+msgid "Only needed when the server cannot reach its own public address, for example inside Docker or behind a zero-trust gateway."
+msgstr ""
+
+#: assets/admin.js:638
+msgid "Parallel requests"
+msgstr ""
+
+#: assets/admin.js:639
+msgid "Timeout (seconds)"
+msgstr ""
+
+#: assets/admin.js:640
+msgid "TLS"
+msgstr ""
+
+#: assets/admin.js:640
+msgid "Verify the certificate"
+msgstr ""
+
+#: assets/admin.js:641
+msgid "Basic auth user"
+msgstr ""
+
+#: assets/admin.js:642
+msgid "Basic auth password"
+msgstr ""
+
+#: assets/admin.js:646
+msgid "Save settings"
+msgstr ""
+
+#: assets/admin.js:649
+msgid "Save and test connection"
+msgstr ""
+
+#: assets/admin.js:706
+msgid "Settings"
+msgstr ""
+
+#: assets/admin.js:722
+msgid "WordPress has not answered the last requests of this screen, so what you see may be out of date. The screen keeps trying. Check your connection, and reload the page when you were signed out in the meantime."
+msgstr ""
+
+#: assets/admin.js:756
+#, js-format
+msgid "WP2Vercel could not load its data: %s This screen talks to WordPress through the REST API, under /wp-json/wp2vercel/v1/. When a security plugin or the firewall of your host blocks the REST API, allow it for signed-in administrators, then reload this page."
+msgstr ""
+
+#: assets/admin.js:757
+msgid "WordPress did not answer."
+msgstr ""

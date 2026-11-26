@@ -16,9 +16,13 @@ final class LocalAssets
         'pdf', 'zip', 'csv', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx',
     ];
 
-    private array $roots = [];
+    private const SERVER_RULE_FILES = ['.htaccess', 'web.config'];
 
-    public function __construct(array $urlPathToDirectory, private readonly string $forbiddenDirectory)
+    private array $roots = [];
+    private string $forbiddenDirectory;
+    private array $guardedFolders = [];
+
+    public function __construct(array $urlPathToDirectory, string $forbiddenDirectory)
     {
         foreach ($urlPathToDirectory as $urlPath => $directory) {
             $real = realpath((string) $directory);
@@ -27,6 +31,7 @@ final class LocalAssets
             }
         }
         uksort($this->roots, static fn(string $a, string $b): int => strlen($b) <=> strlen($a));
+        $this->forbiddenDirectory = $forbiddenDirectory === '' ? '' : (realpath($forbiddenDirectory) ?: rtrim($forbiddenDirectory, '/\\'));
     }
 
     public function resolve(string $urlPath): ?string
@@ -50,11 +55,36 @@ final class LocalAssets
             if (!str_starts_with($candidate, $directory . DIRECTORY_SEPARATOR)) {
                 continue;
             }
-            if ($this->forbiddenDirectory !== '' && str_starts_with($candidate, $this->forbiddenDirectory)) {
-                continue;
+            if ($this->forbiddenDirectory !== '' && str_starts_with($candidate, $this->forbiddenDirectory . DIRECTORY_SEPARATOR)) {
+                return null;
+            }
+            if ($this->hasServerRulesBelow($directory, dirname($candidate))) {
+                return null;
             }
             return $candidate;
         }
         return null;
+    }
+
+    private function hasServerRulesBelow(string $root, string $folder): bool
+    {
+        while ($folder !== $root && str_starts_with($folder, $root . DIRECTORY_SEPARATOR)) {
+            $this->guardedFolders[$folder] ??= self::hasServerRules($folder);
+            if ($this->guardedFolders[$folder]) {
+                return true;
+            }
+            $folder = dirname($folder);
+        }
+        return false;
+    }
+
+    private static function hasServerRules(string $folder): bool
+    {
+        foreach (self::SERVER_RULE_FILES as $name) {
+            if (file_exists($folder . DIRECTORY_SEPARATOR . $name)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

@@ -25,6 +25,8 @@ mkdir -p "$stage/wp2vercel" "$root/dist"
   --exclude='.DS_Store' \
   .) | (cd "$stage/wp2vercel" && tar -xf -)
 
+find "$stage" -exec env TZ=UTC touch -t 202601010000 {} +
+
 rm -f "$root/dist/wp2vercel.zip"
-(cd "$stage" && zip -qr -X "$root/dist/wp2vercel.zip" wp2vercel)
+(cd "$stage" && find wp2vercel -type f | LC_ALL=C sort | TZ=UTC zip -q -X "$root/dist/wp2vercel.zip" -@)
 echo "Built dist/wp2vercel.zip ($expected)"

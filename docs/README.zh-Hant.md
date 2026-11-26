@@ -15,7 +15,7 @@ WP2Vercel 是一款 WordPress 外掛，會把你的網站匯出成靜態檔案�
 
 這個儲存庫收錄的是免費、開放原始碼的 Community 版。付費版在這個基礎上增加功能，說明請見 [wp2vercel.com/pricing](https://wp2vercel.com/pricing)。
 
-> **狀態：早期試用（early access）。** 0.1.0 是第一個開發版本。請先在測試站（staging）的副本上試用，並在搬移正式站之前讀過[這個外掛不做的事](#這個外掛不做的事)。
+> **版本 0.2.0。** 請先在測試站（staging）的副本上試用，並在搬移正式站之前讀過[這個外掛不做的事](#這個外掛不做的事)。Pro 與 Team 方案在 [wp2vercel.com/zh-hant/pricing](https://wp2vercel.com/zh-hant/pricing) 購買。
 
 ![完整發布後的 Publish 畫面：檔案已儲存、轉址已寫入、洩漏掃描沒有發現問題](images/publish.png)
 
@@ -65,7 +65,7 @@ wp plugin install https://github.com/tentenco/wp2vercel/releases/latest/download
 2. 選擇發布位置並加入權杖。使用 GitHub 時，請建立 fine-grained 權杖，只針對你要發布的那一個儲存庫授予 *Contents: Read and write* 權限。
 3. 如果伺服器連不到自己的公開網址（在 Docker 裡或零信任閘道後方很常見），請把擷取網址（fetch address）設成伺服器連得到的位址，例如 `http://localhost`。
 4. 按下 **Save and test connection**（儲存並測試連線）。
-5. 開啟 **Publish** 分頁，按下 **Publish site**（發布網站）。
+5. 開啟 **Publish** 分頁，按下 **Publish site**（發布網站）。第一次發布成功之前，這個分頁會列出還需要處理的項目，例如純文字固定網址，或伺服器連不到的位址。
 
 ![Settings 畫面：公開網址、發布目標、儲存庫和分支](images/settings.png)
 
@@ -127,6 +127,11 @@ define('WP2VERCEL_FETCH_BASIC_AUTH_PASSWORD', '…');
 | 更多掃描規則：REST API 連結、作者彙整頁、版本字串 | | 有 |
 | 發布紀錄與還原（rollback） | | 有 |
 | 靜態網站上的搜尋 | | 有 |
+| 靜態網站上的表單 | | 有 |
+| Polylang 和 WPML 多語網站，可依瀏覽器語言轉址 | | 有 |
+| 把上傳的媒體存到 S3 相容的儲存空間 | | 有 |
+| 部署前審核、權杖檢查和稽核紀錄 | | 有 |
+| 把內容輸出成 JSON，交給獨立的前端（headless） | | 有 |
 | 支援 | GitHub Issues | Email |
 
 各方案和內容列在 [wp2vercel.com/pricing](https://wp2vercel.com/pricing)。
@@ -137,8 +142,11 @@ define('WP2VERCEL_FETCH_BASIC_AUTH_PASSWORD', '…');
 git clone https://github.com/tentenco/wp2vercel.git
 cd wp2vercel
 
-# 單元測試（需要 PHP 8.1+、PHPUnit 10+，以及一份 WordPress 原始碼供 HTML API 使用）
-cd wp2vercel && WP_CORE_DIR=/path/to/wordpress phpunit
+# 在 Docker 裡用 PHP 8.1 到 8.4 跑完所有檢查
+bin/ci.sh
+
+# 用本機的 PHP 跑單元測試（需要 PHP 8.1+、PHPUnit 10+，以及一份 WordPress 原始碼供 HTML API 使用）
+(cd wp2vercel && WP_CORE_DIR=/path/to/wordpress phpunit)
 
 # 本機 WordPress，位於 http://localhost:8089（admin / admin）
 docker compose -f dev/docker-compose.yml up -d

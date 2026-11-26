@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace WP2Vercel;
 
 use WP2Vercel\Admin\AdminPage;
+use WP2Vercel\Admin\CopyDownload;
 use WP2Vercel\Admin\RestController;
+use WP2Vercel\Admin\SiteHealth;
 use WP2Vercel\Build\BuildLogger;
 use WP2Vercel\Build\BuildRepository;
 use WP2Vercel\Build\BuildRunner;
@@ -35,9 +37,12 @@ final class Plugin
         add_action('init', static function (): void {
             load_plugin_textdomain('wp2vercel', false, dirname(plugin_basename(WP2VERCEL_FILE)) . '/languages');
         });
+        add_filter('wpmu_drop_tables', static fn($tables, $siteId) => array_merge((array) $tables, Database::tablesOfSite((int) $siteId)), 10, 2);
 
         if (is_admin()) {
             (new AdminPage())->register();
+            (new CopyDownload(self::runner()))->register();
+            (new SiteHealth(self::settings(), self::runner()->builds()))->register();
         }
         if (defined('WP_CLI') && WP_CLI) {
             WP_CLI::add_command('wp2vercel', new Command(self::runner(), self::settings(), self::secrets()));
@@ -70,10 +75,28 @@ final class Plugin
         Database::migrate();
     }
 
-    public static function deactivate(): void
+    public static function deactivate(bool $networkWide = false): void
     {
-        wp_clear_scheduled_hook(BuildRunner::CRON_HOOK);
-        RenderContext::revokeToken();
-        Dispatcher::revoke();
+        self::onEverySite($networkWide, static function (): void {
+            wp_clear_scheduled_hook(BuildRunner::CRON_HOOK);
+            RenderContext::revokeToken();
+            Dispatcher::revoke();
+        });
+    }
+
+    public static function onEverySite(bool $everySite, callable $task): void
+    {
+        if (!$everySite || !is_multisite()) {
+            $task();
+            return;
+        }
+        foreach (get_sites(['fields' => 'ids', 'number' => 0]) as $siteId) {
+            switch_to_blog((int) $siteId);
+            try {
+                $task();
+            } finally {
+                restore_current_blog();
+            }
+        }
     }
 }

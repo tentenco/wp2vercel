@@ -46,6 +46,7 @@ final class RenderContext
         add_filter('the_generator', '__return_empty_string', PHP_INT_MAX);
         add_filter('xmlrpc_enabled', '__return_false', PHP_INT_MAX);
         add_filter('pings_open', '__return_false', PHP_INT_MAX);
+        add_filter('comments_open', static fn(mixed $open): bool => (bool) apply_filters('wp2vercel_keep_comment_forms', false) && (bool) $open, PHP_INT_MAX);
         add_filter('wp_headers', static function (array $headers): array {
             unset($headers['X-Pingback'], $headers['Link']);
             return $headers;
@@ -56,7 +57,12 @@ final class RenderContext
                 explode("\n", $output),
                 static fn(string $line): bool => !preg_match('~/wp-admin/|/wp-login\.php|/wp-json/|/xmlrpc\.php~i', $line)
             );
-            return implode("\n", $lines);
+            $kept = implode("\n", $lines);
+            return preg_match('~^(dis)?allow:~mi', $kept) ? $kept : (string) preg_replace('~^(user-agent:.*)$~mi', "$1\nDisallow:", $kept, 1);
+        }, PHP_INT_MAX);
+        add_filter('wp_sitemaps_posts_query_args', static function (array $arguments): array {
+            $arguments['has_password'] = false;
+            return $arguments;
         }, PHP_INT_MAX);
         if (!$settings->bool('include_author_archives')) {
             add_filter('wp_sitemaps_add_provider', static function ($provider, string $name) {

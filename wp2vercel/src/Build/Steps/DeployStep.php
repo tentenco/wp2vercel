@@ -6,9 +6,11 @@ namespace WP2Vercel\Build\Steps;
 
 use WP2Vercel\Build\Build;
 use WP2Vercel\Build\BuildFailed;
+use WP2Vercel\Build\BuildRunner;
 use WP2Vercel\Build\Deadline;
 use WP2Vercel\Build\Environment;
 use WP2Vercel\Deploy\DeployFailed;
+use WP2Vercel\Output\StorageFailed;
 use WP2Vercel\Settings;
 
 final class DeployStep implements Step
@@ -60,7 +62,21 @@ final class DeployStep implements Step
         }
 
         if ($build->usesStaging()) {
-            $environment->directory->promote($build->id);
+            if ($deployer === null && $deadline->stopRequested()) {
+                return false;
+            }
+            try {
+                $environment->directory->promote($build->id);
+            } catch (StorageFailed $error) {
+                update_option(BuildRunner::COPY_BEHIND_OPTION, $build->id, false);
+                throw new BuildFailed(sprintf(
+                    $deployer === null
+                        ? __('The new version could not be put in place on this server: %s. The next publish runs in full.', 'wp2vercel')
+                        : __('The site was deployed, but the copy on this server could not be replaced: %s. The next publish runs in full, so the deployed site does not fall back to the older copy.', 'wp2vercel'),
+                    rtrim($error->getMessage(), '.')
+                ), 0, $error);
+            }
+            delete_option(BuildRunner::COPY_BEHIND_OPTION);
         }
         return true;
     }

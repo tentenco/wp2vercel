@@ -43,13 +43,33 @@ final class GitHubDeployer implements Deployer
     {
         $response = $this->api('GET', '');
         if (!$response->ok()) {
-            throw new DeployFailed('GitHub rejected the request (' . $response->describe() . ').');
+            throw new DeployFailed($this->connectionProblem($response));
         }
         $data = $response->json();
         if (empty($data['permissions']['push'])) {
             throw new DeployFailed('The token can read ' . $this->repository . ' but cannot push to it.');
         }
         return sprintf('Connected to %s (default branch: %s).', $this->repository, (string) ($data['default_branch'] ?? ''));
+    }
+
+    private function connectionProblem(HttpResponse $response): string
+    {
+        $answer = $response->describe();
+        return match ($response->status) {
+            0 => sprintf(__('GitHub could not be reached (%s). Check that this server can open api.github.com.', 'wp2vercel'), $answer),
+            401 => sprintf(__('GitHub did not accept the access token (%s). It may be mistyped, expired or revoked. Create a new token and paste it again.', 'wp2vercel'), $answer),
+            403 => sprintf(
+                __('GitHub refused the request for %1$s (%2$s). When this is about permissions: the token needs read and write access to Contents on this repository, and in an organization with single sign-on it has to be authorized for that organization.', 'wp2vercel'),
+                $this->repository,
+                $answer
+            ),
+            404 => sprintf(
+                __('GitHub cannot find %1$s with this access token (%2$s). Check the repository name, and that the token was given access to this repository.', 'wp2vercel'),
+                $this->repository,
+                $answer
+            ),
+            default => 'GitHub rejected the request (' . $answer . ').',
+        };
     }
 
     public function advance(array $state, Manifest $manifest, Deadline $deadline, callable $log): array
@@ -94,7 +114,11 @@ final class GitHubDeployer implements Deployer
         } elseif ($reference->ok()) {
             $state['parent'] = (string) ($reference->json()['object']['sha'] ?? '');
         } else {
-            throw new DeployFailed('Could not read branch "' . $this->branch . '" (' . $reference->describe() . ').');
+            throw new DeployFailed(
+                in_array($reference->status, [0, 401, 403], true)
+                    ? $this->connectionProblem($reference)
+                    : 'Could not read branch "' . $this->branch . '" (' . $reference->describe() . ').'
+            );
         }
 
         $commit = $this->api('GET', '/git/commits/' . $state['parent']);

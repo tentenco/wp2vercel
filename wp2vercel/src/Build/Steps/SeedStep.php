@@ -172,6 +172,9 @@ final class SeedStep implements Step
                     }
                 }
             }
+            if ($this->environment->settings->bool('include_author_archives')) {
+                $urls[] = get_author_posts_url((int) $post->post_author);
+            }
         }
         return $urls;
     }

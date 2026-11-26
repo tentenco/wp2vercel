@@ -15,7 +15,7 @@ WP2Vercel は WordPress プラグインです。サイトを静的ファイル�
 
 このリポジトリには、無料でオープンソースの Community 版が入っています。有料版はこれに機能を追加したもので、[wp2vercel.com/pricing](https://wp2vercel.com/pricing) で説明しています。
 
-> **ステータス: アーリーアクセス。** バージョン 0.1.0 は最初の開発リリースです。まずステージング環境のコピーで試し、本番サイトを移行する前に[できないこと](#できないこと)を読んでください。
+> **バージョン 0.2.0。** まずステージング環境のコピーで試し、本番サイトを移行する前に[できないこと](#できないこと)を読んでください。Pro と Team プランは [wp2vercel.com/ja/pricing](https://wp2vercel.com/ja/pricing) で購入できます。
 
 ![フル公開後の Publish 画面: ファイルは保存済み、リダイレクトは書き出し済み、リークスキャンは検出なし](images/publish.png)
 
@@ -65,7 +65,7 @@ wp plugin install https://github.com/tentenco/wp2vercel/releases/latest/download
 2. 公開先を選び、トークンを追加します。GitHub の場合は、公開先のリポジトリ 1 つだけに *Contents: Read and write* を許可した fine-grained トークンを作成します。
 3. サーバーが自分自身の公開アドレスに到達できない場合（Docker 環境やゼロトラストゲートウェイの背後ではよくあります）は、取得用アドレス（fetch address）を `http://localhost` のような到達できるアドレスに設定します。
 4. **Save and test connection**（保存して接続をテスト）を選択します。
-5. **Publish** タブを開き、**Publish site**（サイトを公開）を選択します。
+5. **Publish** タブを開き、**Publish site**（サイトを公開）を選択します。最初の公開が成功するまで、このタブには対応が必要な項目（基本のパーマリンク設定や、サーバーから到達できないアドレスなど）が表示されます。
 
 ![Settings 画面: 公開アドレス、公開先、リポジトリ、ブランチ](images/settings.png)
 
@@ -127,6 +127,11 @@ define('WP2VERCEL_FETCH_BASIC_AUTH_PASSWORD', '…');
 | より広いスキャンルール: REST API リンク、投稿者アーカイブ、バージョン文字列 | | あり |
 | 公開履歴とロールバック | | あり |
 | 静的サイト上の検索 | | あり |
+| 静的サイト上のフォーム | | あり |
+| Polylang と WPML の多言語サイト、ブラウザーの言語によるリダイレクト | | あり |
+| アップロードしたメディアを S3 互換ストレージに保存 | | あり |
+| デプロイ前の承認、トークンのチェック、監査ログ | | あり |
+| 別のフロントエンド向けにコンテンツを JSON で書き出し（ヘッドレス） | | あり |
 | サポート | GitHub Issues | メール |
 
 プランとそれぞれの内容は [wp2vercel.com/pricing](https://wp2vercel.com/pricing) に掲載しています。
@@ -137,8 +142,11 @@ define('WP2VERCEL_FETCH_BASIC_AUTH_PASSWORD', '…');
 git clone https://github.com/tentenco/wp2vercel.git
 cd wp2vercel
 
-# ユニットテスト（PHP 8.1 以降、PHPUnit 10 以降、HTML API 用に WordPress のチェックアウトが必要）
-cd wp2vercel && WP_CORE_DIR=/path/to/wordpress phpunit
+# Docker 上の PHP 8.1〜8.4 ですべてのチェックを実行
+bin/ci.sh
+
+# 手元の PHP でユニットテスト（PHP 8.1 以降、PHPUnit 10 以降、HTML API 用に WordPress のチェックアウトが必要）
+(cd wp2vercel && WP_CORE_DIR=/path/to/wordpress phpunit)
 
 # ローカルの WordPress を http://localhost:8089 で起動（admin / admin）
 docker compose -f dev/docker-compose.yml up -d

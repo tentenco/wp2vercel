@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace WP2Vercel\Redirects;
 
+use WP2Vercel\Url\UrlResolver;
+
 final class VercelConfig
 {
     public const FILE_NAME = 'vercel.json';
@@ -19,12 +21,13 @@ final class VercelConfig
         private readonly bool $trailingSlash,
         private readonly array $redirects,
         private readonly array $rewrites,
+        private readonly string $homeAt = '',
     ) {
     }
 
     public function routeCount(): int
     {
-        return count($this->redirects) + count($this->rewrites);
+        return count($this->redirects) + count($this->rewrites) + ($this->homeAt === '' ? 0 : 1);
     }
 
     public function exceedsRouteLimit(): bool
@@ -53,6 +56,9 @@ final class VercelConfig
                 $redirects[$rule->source] = $rule->toVercel();
             }
         }
+        if ($this->homeAt !== '') {
+            $redirects['/'] = ['source' => '/', 'destination' => self::literalDestination($this->homeAt), 'statusCode' => 307];
+        }
         if ($redirects !== []) {
             ksort($redirects);
             $config['redirects'] = array_values($redirects);
@@ -74,7 +80,17 @@ final class VercelConfig
 
     public function toJson(): string
     {
-        return json_encode($this->toArray(), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR) . "\n";
+        return self::encode($this->toArray());
+    }
+
+    public static function encode(array $config): string
+    {
+        return json_encode($config, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR) . "\n";
+    }
+
+    private static function literalDestination(string $path): string
+    {
+        return implode('/', array_map(static fn(string $segment): string => rawurlencode(rawurldecode($segment)), explode('/', $path)));
     }
 
     private function sourceVariants(string $source): array
@@ -83,6 +99,6 @@ final class VercelConfig
         if ($bare === '/') {
             return ['/'];
         }
-        return [$this->trailingSlash ? $bare . '/' : $bare];
+        return [$this->trailingSlash && !UrlResolver::hasFileExtension($bare) ? $bare . '/' : $bare];
     }
 }

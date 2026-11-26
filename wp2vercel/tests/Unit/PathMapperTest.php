@@ -6,6 +6,7 @@ namespace WP2Vercel\Tests\Unit;
 
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use WP2Vercel\Build\Environment;
 use WP2Vercel\Url\ContentKind;
 use WP2Vercel\Url\PathMapper;
 
@@ -60,5 +61,31 @@ final class PathMapperTest extends TestCase
         self::assertLessThanOrEqual(200, strlen($first->file));
         self::assertStringEndsWith('.png', $first->file);
         self::assertSame($first->file, $second->file);
+    }
+
+    public function testTheHomeFolderIsWhereTheHomePageIsStored(): void
+    {
+        $mapper = new PathMapper(false);
+        self::assertSame('', Environment::folderOf($mapper, ''));
+        self::assertSame('shop', Environment::folderOf($mapper, '/shop'));
+        self::assertSame('network/shop', Environment::folderOf($mapper, '/network/shop/'));
+        self::assertSame('博客', Environment::folderOf($mapper, '/%E5%8D%9A%E5%AE%A2'));
+        self::assertSame('blog/_con', Environment::folderOf(new PathMapper(true), '/blog/con'));
+    }
+
+    public function testWindowsDeviceNamesAreStoredUnderAnotherNameAndServedAtTheirOwnAddress(): void
+    {
+        $windows = new PathMapper(true);
+        $page = $windows->map('/con/', ContentKind::Html);
+        self::assertSame('_con/index.html', $page?->file);
+        self::assertSame('/con', $page?->rewriteSource);
+        $file = $windows->map('/files/AUX.pdf', ContentKind::Binary);
+        self::assertSame('files/_AUX.pdf', $file?->file);
+        self::assertSame('/files/AUX.pdf', $file?->rewriteSource);
+        self::assertSame('console/index.html', $windows->map('/console/', ContentKind::Html)?->file);
+        self::assertNull($windows->map('/console/', ContentKind::Html)?->rewriteSource);
+        $elsewhere = new PathMapper(false);
+        self::assertSame('con/index.html', $elsewhere->map('/con/', ContentKind::Html)?->file);
+        self::assertNull($elsewhere->map('/con/', ContentKind::Html)?->rewriteSource);
     }
 }

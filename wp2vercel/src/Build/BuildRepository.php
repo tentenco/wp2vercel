@@ -35,7 +35,7 @@ final class BuildRepository
     {
         global $wpdb;
         $row = $wpdb->get_row(
-            'SELECT * FROM ' . Database::builds() . " WHERE status IN ('pending','running') ORDER BY id ASC LIMIT 1",
+            'SELECT * FROM ' . Database::builds() . " WHERE status IN ('pending','running','waiting') ORDER BY id ASC LIMIT 1",
             ARRAY_A
         );
         return is_array($row) ? self::hydrate($row) : null;
@@ -58,18 +58,21 @@ final class BuildRepository
         return is_string($status) ? $status : null;
     }
 
-    public function save(Build $build): void
+    public function save(Build $build): bool
     {
         global $wpdb;
         $build->updatedAt = current_time('mysql', true);
-        $wpdb->update(Database::builds(), [
-            'status' => $build->status,
-            'step' => $build->step,
-            'state' => wp_json_encode($build->state),
-            'message' => $build->message,
-            'updated_at' => $build->updatedAt,
-            'finished_at' => $build->finishedAt,
-        ], ['id' => $build->id]);
+        $values = [$build->status, $build->step, (string) wp_json_encode($build->state), $build->message, $build->updatedAt];
+        if ($build->finishedAt !== null) {
+            $values[] = $build->finishedAt;
+        }
+        array_push($values, $build->id, Build::STATUS_PENDING, Build::STATUS_RUNNING, Build::STATUS_WAITING);
+        return $wpdb->query($wpdb->prepare(
+            'UPDATE ' . Database::builds() . ' SET status = %s, step = %s, state = %s, message = %s, updated_at = %s, finished_at = '
+            . ($build->finishedAt === null ? 'NULL' : '%s')
+            . ' WHERE id = %d AND status IN (%s, %s, %s)',
+            ...$values
+        )) === 1;
     }
 
     public function prune(int $keep): void

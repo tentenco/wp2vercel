@@ -133,6 +133,29 @@ final class Queue
         return is_array($rows) ? $rows : [];
     }
 
+    public function leftOut(int $buildId, int $limit = 100): array
+    {
+        global $wpdb;
+        $rows = $wpdb->get_results($wpdb->prepare(
+            'SELECT url, http_status, found_on, note FROM ' . Database::urls() . ' WHERE build_id = %d AND status = %s AND http_status IN (401, 403) ORDER BY id ASC LIMIT %d',
+            $buildId,
+            self::SKIPPED,
+            $limit
+        ), ARRAY_A);
+        return is_array($rows) ? $rows : [];
+    }
+
+    public function outcome(int $buildId, string $url): ?array
+    {
+        global $wpdb;
+        $row = $wpdb->get_row($wpdb->prepare(
+            'SELECT status, http_status, note FROM ' . Database::urls() . ' WHERE build_id = %d AND url_hash = %s',
+            $buildId,
+            sha1($url)
+        ), ARRAY_A);
+        return is_array($row) ? $row : null;
+    }
+
     public function countHtmlPages(int $buildId): int
     {
         global $wpdb;

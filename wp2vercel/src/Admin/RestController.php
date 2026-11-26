@@ -8,6 +8,7 @@ use Throwable;
 use WP2Vercel\Build\Build;
 use WP2Vercel\Build\BuildFailed;
 use WP2Vercel\Build\BuildRunner;
+use WP2Vercel\Build\Readiness;
 use WP2Vercel\Crawl\Queue;
 use WP2Vercel\Secrets;
 use WP2Vercel\Settings;
@@ -20,6 +21,8 @@ final class RestController
 {
     public const NAMESPACE = 'wp2vercel/v1';
     public const CAPABILITY = 'manage_options';
+
+    private const READINESS_TIMEOUT = 10;
 
     public function __construct(
         private readonly BuildRunner $runner,
@@ -38,6 +41,7 @@ final class RestController
             ['/settings', WP_REST_Server::READABLE, 'readSettings'],
             ['/settings', WP_REST_Server::CREATABLE, 'writeSettings'],
             ['/test-connection', WP_REST_Server::CREATABLE, 'testConnection'],
+            ['/readiness', WP_REST_Server::READABLE, 'readiness'],
         ];
         foreach ($routes as [$path, $methods, $handler]) {
             register_rest_route(self::NAMESPACE, $path, [
@@ -84,8 +88,11 @@ final class RestController
         return new WP_REST_Response($this->settingsPayload());
     }
 
-    public function writeSettings(WP_REST_Request $request): WP_REST_Response
+    public function writeSettings(WP_REST_Request $request): WP_REST_Response|WP_Error
     {
+        if (($running = $this->runner->runningPublish()) !== null) {
+            return new WP_Error('wp2vercel_publish_running', BuildRunner::settingsWaitMessage($running->id), ['status' => 409]);
+        }
         $input = (array) $request->get_json_params();
         $this->settings->update($input);
         foreach (Secrets::NAMES as $name) {
@@ -96,7 +103,7 @@ final class RestController
                 $this->secrets->set($name, $input[$name]);
             }
         }
-        return new WP_REST_Response($this->settingsPayload());
+        return new WP_REST_Response($this->settingsPayload() + ['rejected' => Settings::rejected($input)]);
     }
 
     public function testConnection(WP_REST_Request $request): WP_REST_Response|WP_Error
@@ -104,7 +111,7 @@ final class RestController
         $target = (string) ($request->get_param('target') ?: $this->settings->string('deploy_target'));
         $deployer = $this->runner->environment()->deployer($target);
         if ($deployer === null) {
-            return new WP_Error('wp2vercel_no_target', __('Choose GitHub or Vercel as the publish target first.', 'wp2vercel'), ['status' => 400]);
+            return new WP_Error('wp2vercel_no_target', __('Choose GitHub, Vercel or Netlify as the publish target first.', 'wp2vercel'), ['status' => 400]);
         }
         if (($problem = $deployer->configurationError()) !== null) {
             return new WP_Error('wp2vercel_incomplete', $problem, ['status' => 400]);
@@ -116,6 +123,24 @@ final class RestController
         }
     }
 
+    public function readiness(): WP_REST_Response
+    {
+        $environment = $this->runner->environment();
+        $home = home_url('/');
+        $address = $environment->homeFetchAddress();
+        $fetched = $environment->fetcher('', self::READINESS_TIMEOUT)->fetchMany([$home])[0];
+        $target = $this->settings->string('deploy_target');
+        return new WP_REST_Response(['items' => Readiness::items(
+            (string) get_option('permalink_structure') !== '',
+            $address,
+            Readiness::fetched($address, $fetched),
+            $this->settings->string('production_url'),
+            $target,
+            $environment->deployer($target)?->configurationError(),
+            $environment->directory->unwritableFolder()
+        )]);
+    }
+
     private function snapshot(int $afterLog): array
     {
         $builds = $this->runner->builds()->latest(10);
@@ -124,10 +149,13 @@ final class RestController
         return [
             'active' => $latest !== null && $latest->isActive(),
             'build' => $latest?->toArray(),
+            'idle_seconds' => $latest === null ? 0 : $latest->idleSeconds(time()),
             'counts' => $latest === null ? null : $queue->counts($latest->id),
             'failed' => $latest === null ? [] : $queue->listByStatus($latest->id, Queue::FAILED, 50),
+            'left_out' => $latest === null ? [] : $queue->leftOut($latest->id, 50),
             'log' => $latest === null ? [] : $this->runner->logger()->tail($latest->id, $afterLog),
             'history' => array_map(static fn(Build $build): array => $build->toArray(), $builds),
+            'download' => CopyDownload::url($this->runner),
         ];
     }
 
@@ -139,6 +167,7 @@ final class RestController
             $payload['external_' . $name] = $this->secrets->isManagedExternally($name);
         }
         $payload['origin_url'] = home_url('/');
+        $payload['locked'] = Settings::locked();
         return $payload;
     }
 }

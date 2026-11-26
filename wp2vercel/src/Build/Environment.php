@@ -11,6 +11,7 @@ use WP2Vercel\Crawl\RenderContext;
 use WP2Vercel\Crawl\UrlFilter;
 use WP2Vercel\Deploy\Deployer;
 use WP2Vercel\Deploy\GitHubDeployer;
+use WP2Vercel\Deploy\NetlifyDeployer;
 use WP2Vercel\Deploy\VercelDeployer;
 use WP2Vercel\Extract\LinkExtractor;
 use WP2Vercel\Http\WordPressHttpClient;
@@ -19,6 +20,7 @@ use WP2Vercel\Output\SiteDirectory;
 use WP2Vercel\Rewrite\UrlRewriter;
 use WP2Vercel\Secrets;
 use WP2Vercel\Settings;
+use WP2Vercel\Url\ContentKind;
 use WP2Vercel\Url\Origin;
 use WP2Vercel\Url\PathMapper;
 use WP2Vercel\Url\UrlResolver;
@@ -72,6 +74,17 @@ final class Environment
         return rtrim((string) wp_parse_url(home_url('/'), PHP_URL_PATH), '/');
     }
 
+    public function homeFolder(): string
+    {
+        return self::folderOf($this->pathMapper, $this->homePath());
+    }
+
+    public static function folderOf(PathMapper $mapper, string $urlPath): string
+    {
+        $index = $mapper->map(rtrim($urlPath, '/') . '/', ContentKind::Html)?->file ?? ContentKind::Html->indexFileName();
+        return trim(dirname('/' . $index), '/');
+    }
+
     public function filter(): UrlFilter
     {
         if ($this->filter === null) {
@@ -82,35 +95,64 @@ final class Environment
             $this->filter = new UrlFilter(
                 $this->settings->lines('exclude_patterns'),
                 $this->settings->bool('include_feeds'),
-                $authorBase
+                $authorBase,
+                $this->homePath(),
+                self::otherSitePaths(),
+                array_keys($this->assetFolders())
             );
         }
         return $this->filter;
     }
 
+    private static function otherSitePaths(): array
+    {
+        if (!is_multisite() || is_subdomain_install()) {
+            return [];
+        }
+        $current = get_site();
+        if (!$current instanceof \WP_Site) {
+            return [];
+        }
+        $paths = [];
+        foreach (get_sites(['domain' => $current->domain, 'site__not_in' => [(int) $current->blog_id], 'number' => 0]) as $site) {
+            $paths[] = $site->path;
+        }
+        return $paths;
+    }
+
     public function localAssets(): LocalAssets
     {
         if ($this->localAssets === null) {
-            $sitePath = rtrim((string) wp_parse_url(site_url('/'), PHP_URL_PATH), '/');
-            $contentPath = rtrim((string) wp_parse_url(content_url(), PHP_URL_PATH), '/');
-            $uploads = wp_upload_dir(null, false);
-            $uploadsPath = rtrim((string) wp_parse_url($uploads['baseurl'], PHP_URL_PATH), '/');
-            $this->localAssets = new LocalAssets([
-                $sitePath . '/wp-includes' => ABSPATH . WPINC,
-                $contentPath => WP_CONTENT_DIR,
-                $uploadsPath => $uploads['basedir'],
-            ], $this->directory->base());
+            $this->localAssets = new LocalAssets($this->assetFolders(), $this->directory->base());
         }
         return $this->localAssets;
     }
 
-    public function fetcher(string $renderToken): Fetcher
+    private function assetFolders(): array
+    {
+        $pathOf = static fn(string $url): string => rtrim((string) wp_parse_url($url, PHP_URL_PATH), '/');
+        $uploads = wp_upload_dir(null, false);
+        return [
+            $pathOf(site_url('/')) . '/wp-includes' => ABSPATH . WPINC,
+            $pathOf(get_theme_root_uri()) => get_theme_root(),
+            $pathOf(plugins_url()) => WP_PLUGIN_DIR,
+            $pathOf(WPMU_PLUGIN_URL) => WPMU_PLUGIN_DIR,
+            $pathOf($uploads['baseurl']) => $uploads['basedir'],
+        ];
+    }
+
+    public function homeFetchAddress(): string
+    {
+        return $this->fetchOrigin->base() . $this->homePath() . '/';
+    }
+
+    public function fetcher(string $renderToken, ?int $timeout = null): Fetcher
     {
         return new Fetcher(
             $this->origin,
             $this->fetchOrigin,
             $renderToken,
-            $this->settings->int('fetch_timeout'),
+            $timeout ?? $this->settings->int('fetch_timeout'),
             $this->settings->bool('fetch_ssl_verify'),
             $this->settings->string('fetch_basic_auth_user'),
             $this->secrets->get('fetch_basic_auth_password')
@@ -147,6 +189,12 @@ final class Environment
                 $this->settings->string('vercel_project'),
                 $this->settings->string('vercel_team_id'),
                 $this->settings->bool('vercel_production')
+            ),
+            Settings::TARGET_NETLIFY => new NetlifyDeployer(
+                $http,
+                $this->secrets->get('netlify_token'),
+                $this->settings->string('netlify_site'),
+                $this->settings->bool('netlify_production')
             ),
             default => null,
         };

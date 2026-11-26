@@ -44,6 +44,7 @@ final class AdminPage
         wp_add_inline_script('wp2vercel-admin', 'window.wp2vercelBoot = ' . wp_json_encode([
             'publishPost' => $this->requestedPost(),
             'version' => WP2VERCEL_VERSION,
+            'permalinksUrl' => admin_url('options-permalink.php'),
         ]) . ';', 'before');
         do_action('wp2vercel_admin_enqueue_scripts');
     }

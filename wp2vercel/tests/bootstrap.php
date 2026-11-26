@@ -34,6 +34,11 @@ function wp_json_encode(mixed $value, int $flags = 0, int $depth = 512): string|
     return json_encode($value, $flags, $depth);
 }
 
+function wp_parse_url(string $url, int $component = -1): mixed
+{
+    return parse_url($url, $component);
+}
+
 function apply_filters(string $hook, mixed $value, mixed ...$arguments): mixed
 {
     return $value;

@@ -45,17 +45,22 @@ final class SetupStep implements Step
         }
 
         $build->state['render_token'] = RenderContext::issueToken();
-        $build->state['not_found_url'] = $environment->origin->base() . $environment->homePath() . '/wp2vercel-not-found-' . bin2hex(random_bytes(6)) . '/';
+        $notFound = $environment->origin->base() . $environment->homePath() . '/wp2vercel-not-found-' . bin2hex(random_bytes(6)) . '/';
+        $build->state['not_found_url'] = $environment->resolver->resolve($notFound) ?? $notFound;
 
         $environment->logger->info($build->id, sprintf(
-            'Started %s publish of %s (fetching from %s, target: %s).',
-            $build->type,
+            'Started a publish of %s of %s (fetching from %s, target: %s).',
+            match ($build->type) {
+                Build::TYPE_SINGLE => 'the changed pages',
+                Build::TYPE_RESTORE => 'a saved version',
+                default => 'the whole site',
+            },
             $environment->origin->base(),
             $environment->fetchOrigin->base(),
             $target
         ));
         if ($environment->production === null) {
-            $environment->logger->warning($build->id, 'No production URL is set. Canonical tags, Open Graph tags and sitemaps will use root-relative URLs.');
+            $environment->logger->warning($build->id, 'No public site address is set. Canonical tags, social tags and sitemaps will use root-relative URLs.');
         }
 
         return true;

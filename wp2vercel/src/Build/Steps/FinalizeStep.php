@@ -8,10 +8,13 @@ use WP2Vercel\Build\Build;
 use WP2Vercel\Build\BuildFailed;
 use WP2Vercel\Build\Deadline;
 use WP2Vercel\Build\Environment;
+use WP2Vercel\Build\Readiness;
 use WP2Vercel\Output\SiteMeta;
+use WP2Vercel\Redirects\NetlifyConfig;
 use WP2Vercel\Redirects\RedirectCollector;
 use WP2Vercel\Redirects\RedirectRule;
 use WP2Vercel\Redirects\VercelConfig;
+use WP2Vercel\Settings;
 use WP2Vercel\Url\ContentKind;
 
 final class FinalizeStep implements Step
@@ -29,8 +32,8 @@ final class FinalizeStep implements Step
         $root = $environment->root($build);
 
         if ($build->isFull()) {
-            if (!$directory->exists($root, 'index.html')) {
-                throw new BuildFailed(__('The home page could not be saved, so nothing was published. Check that WordPress can reach itself at the fetch URL.', 'wp2vercel'));
+            if (!$directory->exists($root, ltrim($environment->homeFolder() . '/index.html', '/'))) {
+                throw new BuildFailed(Readiness::queued($environment->homeFetchAddress(), $environment->queue->outcome($build->id, $environment->resolver->resolve(home_url('/')) ?? home_url('/'))) . ' ' . __('Nothing was published.', 'wp2vercel'));
             }
             if ($environment->queue->countHtmlPages($build->id) === 0) {
                 throw new BuildFailed(__('No HTML pages were saved, so nothing was published.', 'wp2vercel'));
@@ -55,7 +58,8 @@ final class FinalizeStep implements Step
             $redirects[$rule->source] = $rule;
         }
 
-        $config = new VercelConfig($environment->usesTrailingSlash(), array_values($redirects), $meta->rewrites());
+        $homeElsewhere = $environment->homePath() !== '' && !$directory->exists($root, 'index.html') ? $environment->homePath() . '/' : '';
+        $config = new VercelConfig($environment->usesTrailingSlash(), array_values($redirects), $meta->rewrites(), $homeElsewhere);
         if ($config->exceedsRouteLimit()) {
             $environment->logger->warning($build->id, sprintf(
                 'vercel.json holds %d routes; Vercel accepts %d. Trim redirects or the deployment will be rejected.',
@@ -63,11 +67,40 @@ final class FinalizeStep implements Step
                 VercelConfig::MAX_ROUTES
             ));
         }
-        $directory->write($root, VercelConfig::FILE_NAME, $config->toJson());
-        $environment->logger->info($build->id, sprintf('Wrote vercel.json with %d redirects and %d rewrites.', count($redirects), count($meta->rewrites())));
+        $filtered = apply_filters('wp2vercel_vercel_config', $config->toArray(), $build);
+        $final = is_array($filtered) ? $filtered : $config->toArray();
+        $target = (string) ($build->state['target'] ?? Settings::TARGET_NONE);
+        $counts = [count($redirects) + ($homeElsewhere === '' ? 0 : 1), count($meta->rewrites())];
+        $this->place($root, VercelConfig::FILE_NAME, $target === Settings::TARGET_NETLIFY ? null : VercelConfig::encode($final));
+        if ($target !== Settings::TARGET_NETLIFY) {
+            $environment->logger->info($build->id, vsprintf('Wrote vercel.json with %d redirects and %d rewrites.', $counts));
+        }
+        $netlify = $target === Settings::TARGET_VERCEL ? null : new NetlifyConfig($final);
+        $this->place($root, NetlifyConfig::REDIRECTS_FILE, $netlify?->redirects());
+        $this->place($root, NetlifyConfig::HEADERS_FILE, $netlify?->headers());
+        if ($netlify !== null) {
+            $environment->logger->info($build->id, vsprintf('Wrote _redirects and _headers for Netlify with %d redirects and %d rewrites.', $counts));
+            if ($netlify->skipped() !== []) {
+                $environment->logger->warning($build->id, sprintf(
+                    'Netlify has no equivalent for %d rules of vercel.json, so _redirects leaves them out: %s',
+                    count($netlify->skipped()),
+                    implode(', ', array_slice($netlify->skipped(), 0, 5))
+                ));
+            }
+        }
 
         $build->state['redirects'] = count($redirects);
         return true;
+    }
+
+    private function place(string $root, string $file, ?string $contents): void
+    {
+        $directory = $this->environment->directory;
+        if ($contents !== null && $contents !== '') {
+            $directory->write($root, $file, $contents);
+        } elseif ($directory->exists($root, $file)) {
+            $directory->remove($directory->site($root) . '/' . $file);
+        }
     }
 
     private function pageExists(string $root, string $sourcePath): bool

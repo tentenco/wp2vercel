@@ -7,9 +7,17 @@ namespace WP2Vercel;
 final class Secrets
 {
     public const OPTION = 'wp2vercel_secrets';
-    public const NAMES = ['github_token', 'vercel_token', 'fetch_basic_auth_password'];
+    public const NAMES = ['github_token', 'vercel_token', 'netlify_token', 'fetch_basic_auth_password'];
 
     private const PREFIX = 'v1:';
+
+    public static function names(): array
+    {
+        return array_values(array_unique(array_merge(self::NAMES, array_filter(
+            (array) apply_filters('wp2vercel_secret_names', []),
+            static fn($name): bool => is_string($name) && (bool) preg_match('~^[a-z0-9_]{1,40}$~', $name)
+        ))));
+    }
 
     public function get(string $name): string
     {
@@ -38,7 +46,7 @@ final class Secrets
 
     public function set(string $name, string $value): void
     {
-        if (!in_array($name, self::NAMES, true)) {
+        if (!in_array($name, self::names(), true)) {
             return;
         }
         $stored = $this->stored();
